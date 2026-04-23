@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+.pytest_cache/
+
+data/raw/
+analysis/out/
+qa/
+*.pdf
+
+.DS_Store
