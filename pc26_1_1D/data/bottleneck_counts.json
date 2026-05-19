@@ -1,0 +1,252 @@
+{
+  "S1": {
+    "label": "Low PIP / stim candidate",
+    "group": "Subsurface",
+    "bopd_lost": 12000,
+    "wells_affected": 36,
+    "wells": [
+      "SY00041:ST",
+      "SY00141:ST",
+      "SY00211:ST",
+      "SY00221:ST",
+      "SY00271:ST",
+      "SY00401:ST",
+      "SY00421:ST",
+      "SY00541:ST",
+      "SY00551:ST",
+      "SY00621:ST",
+      "SY00641:ST",
+      "SY00661:ST",
+      "SY00681:ST",
+      "SY00691:ST",
+      "SY00701:ST",
+      "SY00741:ST",
+      "SY00801:ST",
+      "SY00811:ST",
+      "SY00851:ST",
+      "SY01101:ST",
+      "SY01111:ST",
+      "SY01121:ST",
+      "SY01131:ST",
+      "SY01151:ST",
+      "SY01171:ST",
+      "SY01191:ST",
+      "SY01201:ST",
+      "SY01221:ST",
+      "SY01291:ST",
+      "SY01301:ST",
+      "SY01311:ST",
+      "SY01321:ST",
+      "SY01331:ST",
+      "SY01351:ST",
+      "SY01661:ST",
+      "SY01741:ST"
+    ]
+  },
+  "S2": {
+    "label": "High water cut (>60%)",
+    "group": "Subsurface",
+    "bopd_lost": 7000,
+    "wells_affected": 55,
+    "wells": [
+      "SY00011:ST",
+      "SY00111:ST",
+      "SY00151:ST",
+      "SY00201:ST",
+      "SY00211:ST",
+      "SY00241:ST",
+      "SY00251:ST",
+      "SY00261:ST",
+      "SY00321:ST",
+      "SY00351:ST",
+      "SY00371:ST",
+      "SY00381:ST",
+      "SY00431:ST",
+      "SY00491:ST",
+      "SY00551:ST",
+      "SY00561:ST",
+      "SY00591:ST",
+      "SY00611:ST",
+      "SY00631:ST",
+      "SY00671:ST",
+      "SY00681:ST",
+      "SY00731:ST",
+      "SY00751:ST",
+      "SY00771:ST",
+      "SY00781:ST",
+      "SY00791:ST",
+      "SY00801:ST",
+      "SY00821:ST",
+      "SY00871:ST",
+      "SY00881:ST",
+      "SY00891:ST",
+      "SY00911:ST",
+      "SY00941:ST",
+      "SY00951:ST",
+      "SY00981:ST",
+      "SY00991:ST",
+      "SY01011:ST",
+      "SY01021:ST",
+      "SY01041:ST",
+      "SY01051:ST"
+    ]
+  },
+  "S3": {
+    "label": "Low BHFP / close to Pb",
+    "group": "Subsurface",
+    "bopd_lost": 1800,
+    "wells_affected": 10,
+    "wells": [
+      "SY00221:ST",
+      "SY00401:ST",
+      "SY00581:ST",
+      "SY00641:ST",
+      "SY00851:ST",
+      "SY01081:ST",
+      "SY01201:ST",
+      "SY01321:ST",
+      "SY01351:ST",
+      "SY01891:ST"
+    ]
+  },
+  "S4": {
+    "label": "Inactive string \u2014 WO backlog",
+    "group": "Subsurface",
+    "bopd_lost": 3920,
+    "wells_affected": 9,
+    "wells": [
+      "SY00201:ST",
+      "SY00321:ST",
+      "SY00351:ST",
+      "SY00561:ST",
+      "SY00911:ST",
+      "SY00931:ST",
+      "SY00971:ST",
+      "SY00981:ST",
+      "SY01171:ST"
+    ]
+  },
+  "S5": {
+    "label": "Reservoir P depletion",
+    "group": "Subsurface",
+    "bopd_lost": 5000,
+    "wells_affected": 1,
+    "wells": [
+      "SY00241:ST"
+    ]
+  },
+  "C1": {
+    "label": "Low \u0394P across choke / VSD req.",
+    "group": "Surface/Completion",
+    "bopd_lost": 6500,
+    "wells_affected": 17,
+    "wells": [
+      "SY00041:ST",
+      "SY00141:ST",
+      "SY00151:ST",
+      "SY00201:ST",
+      "SY00221:ST",
+      "SY00371:ST",
+      "SY00391:ST",
+      "SY00441:ST",
+      "SY00461:ST",
+      "SY00481:ST",
+      "SY00511:ST",
+      "SY00571:ST",
+      "SY00591:ST",
+      "SY00631:ST",
+      "SY00651:ST",
+      "SY00661:ST",
+      "SY00671:ST"
+    ]
+  },
+  "C2": {
+    "label": "ESP at max frequency",
+    "group": "Completion",
+    "bopd_lost": 3500,
+    "wells_affected": 13,
+    "wells": [
+      "SY00731:ST",
+      "SY00781:ST",
+      "SY00881:ST",
+      "SY00991:ST",
+      "SY01001:ST",
+      "SY01051:ST",
+      "SY01101:ST",
+      "SY01131:ST",
+      "SY01211:ST",
+      "SY01321:ST",
+      "SY01341:ST",
+      "SY01541:ST",
+      "SY01661:ST"
+    ]
+  },
+  "C3": {
+    "label": "Surface back-pressure (proxy)",
+    "group": "Surface",
+    "bopd_lost": null,
+    "wells_affected": 12,
+    "wells": [
+      "SY00211:ST",
+      "SY00571:ST",
+      "SY00641:ST",
+      "SY00741:ST",
+      "SY00881:ST",
+      "SY00891:ST",
+      "SY01231:ST",
+      "SY01291:ST",
+      "SY01331:ST",
+      "SY01601:ST",
+      "SY01611:ST",
+      "SY01941:ST"
+    ]
+  },
+  "W1": {
+    "label": "Cluster capacity ceiling 25/26 Mbwpd",
+    "group": "Water Injection",
+    "bopd_lost": null,
+    "wells_affected": null,
+    "wells": []
+  },
+  "W2": {
+    "label": "WI well integrity (SY-175, SY-180)",
+    "group": "Water Injection",
+    "bopd_lost": null,
+    "wells_affected": 2,
+    "wells": [
+      "175 TB",
+      "180 TB"
+    ]
+  },
+  "W3": {
+    "label": "R1\u2192R2 inter-reservoir water loss",
+    "group": "Water Injection",
+    "bopd_lost": null,
+    "wells_affected": 2,
+    "wells": [
+      "139 SS",
+      "145 SS"
+    ]
+  },
+  "W4": {
+    "label": "High-WC producers loading PW system",
+    "group": "Water Injection",
+    "bopd_lost": null,
+    "wells_affected": 13,
+    "wells": [
+      "SY00011:ST",
+      "SY00111:ST",
+      "SY00151:ST",
+      "SY00201:ST",
+      "SY00251:ST",
+      "SY00321:ST",
+      "SY00761:ST",
+      "SY00791:ST",
+      "SY00891:ST",
+      "SY00911:ST",
+      "SY01231:ST",
+      "SY01571:ST",
+      "SY01661:ST"
+    ]
+  }
+}

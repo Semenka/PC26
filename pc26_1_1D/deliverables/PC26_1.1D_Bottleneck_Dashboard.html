@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>PC26 1.1D · Shah Bottleneck Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #0c0d10; --panel: #14171c; --panel2: #1b1f27; --border: #232733;
+  --text: #f5f7fa; --sub: #9aa3b2; --dim: #6b7280;
+  --oil: #f59e0b; --oil-soft: rgba(245,158,11,0.15);
+  --navy: #0a2540; --teal: #0891b2; --mint: #34d399; --water: #06b6d4;
+  --bad: #dc2626; --warn: #f59e0b; --good: #16a34a;
+}
+* { box-sizing: border-box; }
+html,body { background: var(--bg); color: var(--text); margin: 0; padding: 0;
+  font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px; line-height: 1.45; }
+header { position: sticky; top: 0; z-index: 50; background: var(--navy);
+  border-bottom: 2px solid var(--oil); padding: 18px 28px; }
+header h1 { margin: 0; font-family: "Fraunces", Georgia, serif; font-size: 22px;
+  font-weight: 700; letter-spacing: 0.2px; }
+header .meta { color: var(--sub); font-size: 12px; margin-top: 4px;
+  font-family: "JetBrains Mono", monospace; }
+nav { position: sticky; top: 70px; z-index: 49; display: flex; gap: 2px;
+  padding: 0 16px; background: var(--panel); overflow-x: auto;
+  border-bottom: 1px solid var(--border); }
+nav button { background: transparent; color: var(--sub); border: none;
+  padding: 13px 18px; font-size: 13px; cursor: pointer;
+  border-bottom: 3px solid transparent; font-family: inherit; font-weight: 500;
+  white-space: nowrap; }
+nav button.active { color: var(--oil); border-bottom-color: var(--oil); font-weight: 600; }
+nav button:hover { color: var(--text); }
+main { padding: 22px 28px 60px; max-width: 1640px; margin: 0 auto; }
+.tab { display: none; }
+.tab.active { display: block; }
+
+.kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  margin-bottom: 22px; }
+.kpi { background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 18px; position: relative; overflow: hidden; }
+.kpi::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--oil); }
+.kpi .label { color: var(--sub); font-size: 11px; text-transform: uppercase;
+  letter-spacing: 0.6px; }
+.kpi .value { font-family: "JetBrains Mono", monospace; font-size: 28px;
+  font-weight: 700; color: var(--text); margin-top: 6px; }
+.kpi .sub { color: var(--dim); font-size: 11px; margin-top: 4px;
+  font-family: "JetBrains Mono", monospace; }
+
+.grid { display: grid; gap: 18px; }
+.grid.two { grid-template-columns: 1.2fr 1fr; }
+@media (max-width: 1100px) { .grid.two { grid-template-columns: 1fr; }
+  .kpi-strip { grid-template-columns: repeat(2, 1fr); } }
+
+.card { background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 18px 20px; }
+.card h2 { margin: 0 0 12px 0; font-family: "Fraunces", Georgia, serif;
+  font-size: 17px; color: var(--text); font-weight: 600; }
+.card h3 { margin: 4px 0 10px 0; color: var(--oil); font-family: "Fraunces", Georgia, serif;
+  font-size: 15px; font-weight: 600; }
+.card p { color: var(--sub); margin: 6px 0; font-size: 13px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 9px 11px; text-align: left; border-bottom: 1px solid var(--border);
+  vertical-align: middle; }
+th { color: var(--sub); font-weight: 600; cursor: pointer; user-select: none;
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px;
+  background: var(--panel2); position: sticky; top: 0; }
+td.num, th.num { text-align: right; font-family: "JetBrains Mono", monospace; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 10px; font-weight: 600; margin-right: 4px;
+  background: rgba(245,158,11,0.15); color: var(--oil);
+  font-family: "JetBrains Mono", monospace; }
+.tag.water { background: rgba(6,182,212,0.18); color: #67e8f9; }
+.tag.subsurface { background: rgba(52,211,153,0.18); color: #6ee7b7; }
+.tag.completion { background: rgba(30,58,95,0.6); color: #93c5fd; }
+.tag.surface { background: rgba(245,158,11,0.18); color: #fbbf24; }
+.tag.bad { background: rgba(220,38,38,0.20); color: #fca5a5; }
+.tag.good { background: rgba(22,163,74,0.18); color: #86efac; }
+.tag.warn { background: rgba(245,158,11,0.18); color: #fbbf24; }
+
+.bar-cell { display: flex; align-items: center; gap: 8px; min-width: 160px; }
+.bar-cell .bar { flex: 1; height: 6px; background: var(--panel2); border-radius: 3px;
+  position: relative; overflow: hidden; }
+.bar-cell .bar > i { display: block; height: 100%; background: var(--oil); }
+.bar-cell .num { font-family: "JetBrains Mono", monospace; min-width: 60px;
+  text-align: right; font-size: 12px; }
+
+.conf-pill { display: inline-block; padding: 2px 8px; border-radius: 999px;
+  font-size: 10px; font-weight: 700; font-family: "JetBrains Mono", monospace; }
+.conf-h  { background: rgba(22,163,74,0.20); color: #86efac; }
+.conf-mh { background: rgba(245,158,11,0.20); color: #fbbf24; }
+.conf-m  { background: rgba(220,38,38,0.20); color: #fca5a5; }
+
+.opp-card { background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 0; margin-bottom: 12px; overflow: hidden; }
+.opp-head { padding: 14px 18px; cursor: pointer; display: flex; align-items: center;
+  gap: 14px; background: linear-gradient(90deg, var(--panel2) 0%, var(--panel) 100%); }
+.opp-head:hover { background: var(--panel2); }
+.opp-id { font-family: "JetBrains Mono", monospace; color: var(--oil); font-weight: 700;
+  font-size: 14px; min-width: 38px; }
+.opp-title { font-family: "Fraunces", Georgia, serif; font-size: 15px; flex: 1; font-weight: 600; }
+.opp-gain { font-family: "JetBrains Mono", monospace; color: var(--mint);
+  font-weight: 700; font-size: 13px; }
+.opp-body { display: none; padding: 16px 22px 20px; border-top: 1px solid var(--border); }
+.opp-card.open .opp-body { display: block; }
+.opp-body h4 { margin: 14px 0 6px; color: var(--oil); font-size: 12px;
+  text-transform: uppercase; letter-spacing: 0.4px; font-family: "JetBrains Mono", monospace; }
+.opp-body p { margin: 4px 0; color: var(--sub); font-size: 13px; line-height: 1.55; }
+.range-bar { height: 18px; background: var(--panel2); border-radius: 4px;
+  position: relative; overflow: hidden; margin: 4px 0 12px; }
+.range-bar > .fill { position: absolute; top: 0; bottom: 0; background: var(--oil);
+  opacity: 0.85; }
+.range-bar > .label { position: absolute; top: 0; bottom: 0; left: 8px; right: 8px;
+  display: flex; align-items: center; color: var(--text); font-size: 11px;
+  font-family: "JetBrains Mono", monospace; font-weight: 600; z-index: 1; }
+.kpi-mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  margin-bottom: 12px; }
+.kpi-mini > div { background: var(--panel2); padding: 10px 12px; border-radius: 6px;
+  border: 1px solid var(--border); }
+.kpi-mini .l { color: var(--sub); font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.4px; }
+.kpi-mini .v { font-family: "JetBrains Mono", monospace; font-size: 16px;
+  font-weight: 700; color: var(--text); margin-top: 2px; }
+
+#wells-filter { background: var(--panel2); color: var(--text); border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px 12px; font-family: inherit; font-size: 13px;
+  width: 320px; }
+#wells-filter:focus { outline: none; border-color: var(--oil); }
+.chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 14px; }
+.chip-row .chip { background: var(--panel2); color: var(--sub);
+  border: 1px solid var(--border); padding: 5px 12px; border-radius: 999px;
+  font-size: 11px; cursor: pointer; font-family: "JetBrains Mono", monospace; }
+.chip-row .chip.active { background: var(--oil-soft); color: var(--oil);
+  border-color: var(--oil); }
+
+.sankey { font-family: "JetBrains Mono", monospace; font-size: 11px; }
+.sankey text { fill: var(--text); font-family: inherit; }
+.sankey .axis { fill: var(--sub); }
+
+.note { background: rgba(220,38,38,0.08); border-left: 3px solid var(--bad);
+  padding: 10px 14px; color: var(--sub); font-size: 12px; margin: 10px 0;
+  border-radius: 4px; }
+
+.footer { color: var(--dim); font-size: 11px; padding: 30px 28px 10px;
+  font-family: "JetBrains Mono", monospace; text-align: center; }
+
+canvas { background: transparent !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Shah Field De-Bottlenecking · PC26 Obj 1.1D</h1>
+  <div class="meta">TotalEnergies ALSG × ADNOC Onshore · Asset Lead FP: Andrey Semenov · Issued 19-May-2026</div>
+</header>
+
+<nav>
+  <button class="tabbtn active" data-tab="overview">Overview</button>
+  <button class="tabbtn" data-tab="map">Bottleneck Map</button>
+  <button class="tabbtn" data-tab="opps">Opportunities</button>
+  <button class="tabbtn" data-tab="wells">Wells (124)</button>
+  <button class="tabbtn" data-tab="gaps">Data Gaps</button>
+</nav>
+
+<main>
+
+<!-- OVERVIEW -->
+<section class="tab active" id="overview">
+  <div class="kpi-strip">
+    <div class="kpi"><div class="label">Field Actual (FAR)</div><div class="value">75,733</div><div class="sub">BOPD · Q1-2026</div></div>
+    <div class="kpi"><div class="label">2026 Uplift Envelope</div><div class="value">+10–12k</div><div class="sub">BOPD · 25% overlap-deducted</div></div>
+    <div class="kpi"><div class="label">Opportunities</div><div class="value">8</div><div class="sub">5 subsurface · 2 surface · 1 cross</div></div>
+    <div class="kpi"><div class="label">Critical Data Gaps</div><div class="value">9</div><div class="sub">FCT + IPM model top of list</div></div>
+  </div>
+
+  <div class="grid two">
+    <div class="card">
+      <h2>Field baseline — Allowable vs TR vs Actual</h2>
+      <canvas id="baseline-chart" height="180"></canvas>
+      <p style="margin-top:10px"><span style="color:var(--text);font-weight:600">Allowable 76,671</span> · TR 79,983 · FAR 75,733 BOPD — under-delivery gap of <b style="color:var(--warn)">4,250 BOPD (5.6%)</b>. Including inactive strings the allowable rises to 80,591 BOPD; ceiling deliverability ~102,752 BOPD.</p>
+    </div>
+    <div class="card">
+      <h2>Water injection — current vs target</h2>
+      <canvas id="wi-chart" height="180"></canvas>
+      <p style="margin-top:10px">Field WI actual <b>53,000 bwpd</b> vs technical rate <b>71,000 bwpd</b>. SY-175 + SY-180 commissioning unlocks +16,000 bwpd of stranded capacity. Cluster physical caps 25/26 Mbwpd each.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h2>9 bottleneck categories — wells affected & BOPD lost</h2>
+    <table id="bottleneck-table">
+      <thead><tr><th>ID</th><th>Category</th><th>Group</th><th class="num">Wells affected</th><th>BOPD lost vs cap</th><th>Linked opportunity</th></tr></thead>
+      <tbody id="bt-body"></tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h2>Opportunity ranking — 2026 realistic gain (BOPD)</h2>
+    <canvas id="opp-rank-chart" height="200"></canvas>
+    <p style="margin-top:10px">Ranking uses the midpoint of the 2026-realistic gain range. After 25% overlap deduction (§4.1 + §4.3 + §4.4 share wells) the envelope is <b style="color:var(--mint)">~10,000–12,000 BOPD (+13% field uplift)</b> — comparable to the Saih Rawl Shuaiba debottlenecking outcome (SPE 68222: +6,300 BOPD on a smaller system).</p>
+  </div>
+</section>
+
+<!-- BOTTLENECK MAP -->
+<section class="tab" id="map">
+  <div class="card">
+    <h2>Bottleneck flow — current actual → 8 opportunities → target envelope</h2>
+    <p>SVG flow chart: each wedge sized by 2026-realistic gain midpoint. Order matches the consolidated ranking. Hover any wedge for opportunity title and gain range.</p>
+    <div id="sankey-host" style="width:100%; overflow-x:auto; padding-top:10px"></div>
+  </div>
+
+  <div class="grid two" style="margin-top:18px">
+    <div class="card">
+      <h2>Wells per bottleneck category</h2>
+      <canvas id="cat-wells-chart" height="200"></canvas>
+    </div>
+    <div class="card">
+      <h2>BOPD lost per bottleneck (where quantifiable)</h2>
+      <canvas id="cat-bopd-chart" height="200"></canvas>
+      <p style="margin-top:10px"><span class="tag bad">C3 / W1 / W2 / W3 / W4</span> not quantified per-well from the Allowable — needs FCT, integrity logs, and tracer data.</p>
+    </div>
+  </div>
+</section>
+
+<!-- OPPORTUNITIES -->
+<section class="tab" id="opps">
+  <div class="card">
+    <h2>8 quantified opportunities — click to expand</h2>
+    <p>Each card shows the 2026-realistic gain range, full potential, capex bracket, mechanism, and prerequisite data/work. Confidence is colour-coded: <span class="conf-pill conf-h">High</span> <span class="conf-pill conf-mh">Med-High</span> <span class="conf-pill conf-m">Medium</span>.</p>
+    <div id="opps-list" style="margin-top:14px"></div>
+  </div>
+</section>
+
+<!-- WELLS -->
+<section class="tab" id="wells">
+  <div class="card">
+    <h2>All 124 strings — RM-tagged constraints</h2>
+    <input id="wells-filter" placeholder="Search by string, reservoir, RM comment…" />
+    <div class="chip-row" id="chip-row"></div>
+    <table id="wells-table">
+      <thead><tr>
+        <th data-k="string">String</th>
+        <th data-k="reservoir">Reservoir</th>
+        <th class="num" data-k="allow">Allow.</th>
+        <th class="num" data-k="tr">TR</th>
+        <th class="num" data-k="qo">Latest Qo</th>
+        <th class="num" data-k="wc">WC %</th>
+        <th class="num" data-k="bhfp">BHFP</th>
+        <th class="num" data-k="esp_freq">ESP Hz</th>
+        <th data-k="inactive">Status</th>
+        <th data-k="tags">Bottleneck tags</th>
+        <th data-k="rm">RM comment</th>
+      </tr></thead>
+      <tbody id="wells-body"></tbody>
+    </table>
+    <p style="margin-top:10px; color:var(--dim); font-size:11px;">Sorting: click any column header. Filter: text search across all columns AND chip filters (multi-select OR). Source: <code>Shah Q2 2026 Allowable-V1 (final).xlsx</code>, sheet <code>Q2-2026 OP Allowable RM_Upd</code>, rows 11-134.</p>
+  </div>
+</section>
+
+<!-- DATA GAPS -->
+<section class="tab" id="gaps">
+  <div class="card">
+    <h2>9 critical data items still required</h2>
+    <p>Ranked by impact on deliverable confidence. Items 1-4 are blockers for tightening the §4.5 and §4.7 estimates — the two largest opportunities.</p>
+    <table>
+      <thead><tr><th style="width:40px">#</th><th>Item</th><th>Why needed</th></tr></thead>
+      <tbody id="gaps-body"></tbody>
+    </table>
+    <div class="note">All §4.7 surface-back-pressure estimates carry wide uncertainty until the Jan-2026 FCT report and GAP/Prosper IPM surface model become available.</div>
+  </div>
+</section>
+
+</main>
+
+<div class="footer">PC26 Obj 1.1D · Generated offline from Q2-2026 Allowable file · Chart.js 4.4.0 · No live API calls</div>
+
+<script>
+const CATS = {"S1": {"label": "Low PIP / stim candidate", "group": "Subsurface", "bopd_lost": 12000, "wells_affected": 36, "opp": "\u00a74.1", "color": "#34D399"}, "S2": {"label": "High water cut (>60%)", "group": "Subsurface", "bopd_lost": 7000, "wells_affected": 55, "opp": "\u00a74.6 + 1.2A", "color": "#06B6D4"}, "S3": {"label": "Low BHFP / close to Pb", "group": "Subsurface", "bopd_lost": 1800, "wells_affected": 10, "opp": "\u00a74.2", "color": "#F59E0B"}, "S4": {"label": "Inactive \u2014 WO backlog", "group": "Subsurface", "bopd_lost": 3920, "wells_affected": 9, "opp": "\u00a74.8 + 1.1B", "color": "#16A34A"}, "S5": {"label": "Reservoir P depletion", "group": "Subsurface", "bopd_lost": 5000, "wells_affected": 1, "opp": "\u00a74.5", "color": "#0891B2"}, "C1": {"label": "Low \u0394P choke / VSD req.", "group": "Surface/Completion", "bopd_lost": 6500, "wells_affected": 17, "opp": "\u00a74.3", "color": "#F59E0B"}, "C2": {"label": "ESP at max frequency", "group": "Completion", "bopd_lost": 3500, "wells_affected": 13, "opp": "\u00a74.4", "color": "#1E3A5F"}, "C3": {"label": "Surface back-pressure (proxy)", "group": "Surface", "bopd_lost": null, "wells_affected": 12, "opp": "\u00a74.7", "color": "#DC2626"}, "W1": {"label": "Cluster capacity ceiling 25/26 Mbwpd", "group": "Water Injection", "bopd_lost": null, "wells_affected": null, "opp": "\u00a74.5 Ph2", "color": "#06B6D4"}, "W2": {"label": "WI integrity (SY-175, SY-180)", "group": "Water Injection", "bopd_lost": null, "wells_affected": 2, "opp": "\u00a74.5 Ph1", "color": "#06B6D4"}, "W3": {"label": "R1\u2194R2 inter-reservoir loss", "group": "Water Injection", "bopd_lost": null, "wells_affected": 2, "opp": "\u00a74.6 (a)", "color": "#06B6D4"}, "W4": {"label": "High-WC PW load", "group": "Water Injection", "bopd_lost": null, "wells_affected": 13, "opp": "\u00a74.6 (c)", "color": "#06B6D4"}};
+const OPPS = [{"id": "4.5", "title": "WI capacity uplift (SY-175 + SY-180 + cluster review)", "category": "Subsurface / WI", "lo": 2500, "hi": 4000, "full_lo": 4000, "full_hi": 5500, "conf": "Med-High", "capex_lo": 2.0, "capex_hi": 28.0, "mech": "Phase 1: complete WO on SY-175 & SY-180 to recover 16,000 bwpd stranded capacity. Phase 2 (2027): Cluster #2 capacity uplift study based on Jan-2026 FCT. Phase 3: new WI well drilling if VRR confirms additional voidage to fill. Sector pressure recovery lifts Qo across ~30 R1/R2 producers. Saih Rawl analog (SPE 68222): ~12% oil rate uplift per 30% WI rate increase at mature waterflood stage.", "prereq": "Cluster #2 / SY-148 WS FCT (RM-mandated before SY-180 commissioning); G2V2 ML#5 forecast"}, {"id": "4.7", "title": "Surface back-pressure optimization", "category": "Surface", "lo": 1500, "hi": 2500, "full_lo": 2300, "full_hi": 3300, "conf": "Medium", "capex_lo": 0.2, "capex_hi": 8.0, "mech": "Phase 1: Station header pressure setpoint review (CDS / RDS-1 / RDS-2). Each 10 psi separator pressure reduction across 80 R1 producers ≈ +800 BOPD. Phase 2: Selective flowline looping on 2-3 worst segments (>200 psi/km ΔP). Phase 3: Choke-on-test vs production-choke alignment. PENDING FCT REPORT — estimates carry wide uncertainty until Jan-2026 FCT data lands.", "prereq": "January-2026 FCT report; GAP/Prosper IPM model; WHIP/WHFP-vs-time per well"}, {"id": "4.6", "title": "Produced-water redistribution + R1↔R2 rebalancing", "category": "Subsurface / WI", "lo": 2000, "hi": 2400, "full_lo": 2400, "full_hi": 3200, "conf": "Medium", "capex_lo": 0.5, "capex_hi": 1.5, "mech": "(a) Tracer + integrity diagnosis on 139-SS and 145-SS (RM flagged R1→R2 water loss). (b) Rebalance injection: redirect 3,000-5,000 bwpd from R2 to R1. (c) Selective shut-in / rate reduction on 6 worst high-WC producers (>85% WC) to free PW capacity and improve sector VRR efficiency.", "prereq": "PW lab analysis (TDS, scaling, particulates, H₂S); injector PLT/CBL on 139-SS, 145-SS"}, {"id": "4.1", "title": "Stimulation roll-out beyond Obj 1.1C", "category": "Subsurface", "lo": 2500, "hi": 2500, "full_lo": 5000, "full_hi": 6000, "conf": "Medium", "capex_lo": 8.0, "capex_hi": 12.0, "mech": "32+ R1 strings flagged 'Low intake / Low PIP / stim required' by RM. Obj 1.1C covers 5. Apply Naphtha+HCl recipe to 8-10 additional wells per year. Target wells with PI degradation D > 30%/yr (1.1C methodology). Average gain +150 to +400 BOPD per well, declining 30%/yr.", "prereq": "Per-well PI screening across 32 stim candidates (extension of 1.1C dashboard)"}, {"id": "4.3", "title": "VSD / PWS retrofit campaign", "category": "Surface / Completion", "lo": 1600, "hi": 1600, "full_lo": 3300, "full_hi": 5500, "conf": "High", "capex_lo": 2.4, "capex_hi": 4.8, "mech": "22 strings flagged 'Low DP across choke / VSD required' — ESP-limited not reservoir-limited. Replace fixed-speed power with PWS-VSD; allows running at 55-60 Hz to push past choke-DP-limited operating point. Already proven on 10 Shah wells (SY-012, 019, 026, 035, 039, 097).", "prereq": "Power-system loading review (does Shah electrical infra support 8 more VSDs?)"}, {"id": "4.4", "title": "ESP upsize where pump at max frequency", "category": "Completion", "lo": 800, "hi": 800, "full_lo": 2800, "full_hi": 2800, "conf": "Medium", "capex_lo": 2.0, "capex_hi": 3.2, "mech": "14 strings already at 55-60 Hz with no headroom (SY-073, 088, 094, 099, 100, 113). During next workover install pump from one tier higher in catalog (TE3300 → TE5000, GN3200 → GN4000). Combine with VSD where not already present.", "prereq": "Per-well ESP design review; align with existing WO schedule"}, {"id": "4.2", "title": "BHFP rate-cap relaxation via skin reduction / PVT relocalization", "category": "Subsurface", "lo": 900, "hi": 900, "full_lo": 1800, "full_hi": 1800, "conf": "Med-High", "capex_lo": 0.2, "capex_hi": 0.5, "mech": "12 strings explicitly capped at low rate to keep BHFP ≥ Pb+100 (SY-040, 058, 064, 085, 120, 132, 135, 014). Two paths: (a) skin reduction via stimulation reduces drawdown for same Qo; (b) per-well revisit of Pb assumption — for some R1 wells, local Pb may be lower than 392 psi.", "prereq": "GAP/Prosper IPM model; PVT relocalization study"}, {"id": "4.8", "title": "Inactive-string reactivation acceleration", "category": "Cross-cut Obj 1.1B", "lo": 1000, "hi": 1000, "full_lo": 3920, "full_hi": 3920, "conf": "High", "capex_lo": 0.5, "capex_hi": 1.0, "mech": "14 inactive strings totaling 3,920 BOPD allowable (SY-035 PWS, SY-097 tie-in, SY-098 downsize, SY-115/117 ESP repl, SY-093 SAP-B fix). Speed of execution is the lever — every quarter of acceleration ≈ +1,000 BOPD avg uplift over the year.", "prereq": "Coordination with Obj 1.1B inactive-string KPI track"}];
+const WELLS = [{"string": "SY00011", "reservoir": "SIMSIMA R2", "allow": 90, "tr": 90, "qo": 75.7, "wc": 95.7, "bhfp": 1061, "esp_freq": 50, "inactive": "N", "rm": "High water cut ,WO for production enhancement (squeeze perfos and new perforations)", "tags": ["S2"]}, {"string": "SY00041", "reservoir": "SIMSIMA R1", "allow": 980, "tr": 1000, "qo": 1014.2, "wc": 50.0, "bhfp": 739.2480838015999, "esp_freq": 50, "inactive": "N", "rm": "Test the well to check the well potential", "tags": ["C1", "S1"]}, {"string": "SY00111", "reservoir": "SIMSIMA R2", "allow": 120, "tr": 120, "qo": 163.8, "wc": 87.2, "bhfp": 1444, "esp_freq": null, "inactive": "N", "rm": "High water cut ", "tags": ["S2"]}, {"string": "SY00121", "reservoir": "SIMSIMA R1", "allow": 1300, "tr": 1500, "qo": 1193, "wc": 57.9, "bhfp": 1127.5148994607998, "esp_freq": 50, "inactive": "N", "rm": "MRT required to check well potential", "tags": []}, {"string": "SY00141", "reservoir": "SIMSIMA R1", "allow": 650, "tr": 670, "qo": 599.7, "wc": 38.9, "bhfp": "573", "esp_freq": 50, "inactive": "N", "rm": "Low PIP, Low DP across choke ", "tags": ["C1", "S1"]}, {"string": "SY00151", "reservoir": "SIMSIMA R2", "allow": 300, "tr": 340, "qo": 316.4, "wc": 86.7, "bhfp": 966.8804012287999, "esp_freq": 50, "inactive": "N", "rm": "High water cut , Low DP across choke ", "tags": ["C1", "S2"]}, {"string": "SY00191", "reservoir": "SIMSIMA R1", "allow": 500, "tr": 530, "qo": 432, "wc": 41.0, "bhfp": "690", "esp_freq": null, "inactive": "N", "rm": "Well Equipped with PWS-VSD", "tags": []}, {"string": "SY00201", "reservoir": "SIMSIMA R2", "allow": 0, "tr": 0, "qo": 456.3, "wc": 90.4, "bhfp": 857.7414122419999, "esp_freq": null, "inactive": "Y", "rm": "High water cut , Low DP across choke ", "tags": ["C1", "S2", "S4"]}, {"string": "SY00211", "reservoir": "SIMSIMA R1", "allow": 300, "tr": 300, "qo": 100.2, "wc": 76.6, "bhfp": 672.4611762, "esp_freq": 50, "inactive": "N", "rm": "Low PIP. Test the well to check the well potential", "tags": ["C3", "S1", "S2"]}, {"string": "SY00221", "reservoir": "SIMSIMA R1", "allow": 300, "tr": 400, "qo": 443.2, "wc": 49.0, "bhfp": 506, "esp_freq": 50, "inactive": "N", "rm": "Test the well to check the well potential", "tags": ["C1", "S1", "S3"]}, {"string": "SY00241", "reservoir": "SIMSIMA R1", "allow": 470, "tr": 470, "qo": null, "wc": null, "bhfp": 1350.4342165612002, "esp_freq": null, "inactive": "N", "rm": "", "tags": ["S2", "S5"]}, {"string": "SY00251", "reservoir": "SIMSIMA R2", "allow": 0, "tr": 270, "qo": 272.8, "wc": 94.0, "bhfp": "1239", "esp_freq": 50, "inactive": "N", "rm": "High water cut.Meanwhile shut-in them in case required for water mangement ", "tags": ["S2"]}, {"string": "SY00261", "reservoir": "SIMSIMA R2", "allow": 770, "tr": 800, "qo": 752.3, "wc": 76.2, "bhfp": 1370, "esp_freq": 50, "inactive": "N", "rm": "Well Equipped with PWS-VSD", "tags": ["S2"]}, {"string": "SY00271", "reservoir": "SIMSIMA R1", "allow": 850, "tr": 850, "qo": 820.9, "wc": 37.8, "bhfp": 629, "esp_freq": 50, "inactive": "N", "rm": "Test the well to check the well potential", "tags": ["S1"]}, {"string": "SY00321", "reservoir": "SIMSIMA R1", "allow": 0, "tr": 0, "qo": 51.7, "wc": 95.5, "bhfp": null, "esp_freq": null, "inactive": "DISCONNECTED", "rm": "Test the well to check the well potential", "tags": ["S2", "S4"]}, {"string": "SY00341", "reservoir": "SIMSIMA R2", "allow": 0, "tr": 0, "qo": null, "wc": 62.3, "bhfp": 1215, "esp_freq": null, "inactive": "N", "rm": "ESP failed - WO requires and be available by Jul.", "tags": []}, {"string": "SY00351", "reservoir": "SIMSIMA R2", "allow": 0, "tr": 0, "qo": 810.7, "wc": 71.9, "bhfp": 1467, "esp_freq": 50, "inactive": "Y", "rm": "VSD PWS replacement done", "tags": ["S2", "S4"]}, {"string": "SY00371", "reservoir": "SIMSIMA R2", "allow": 650, "tr": 650, "qo": 639.8, "wc": 76.2, "bhfp": 948, "esp_freq": 50, "inactive": "N", "rm": "High water cut, Low DP choke, need test at higher choke", "tags": ["C1", "S2"]}, {"string": "SY00381", "reservoir": "SIMSIMA R2", "allow": 300, "tr": 300, "qo": 431.4, "wc": 79.2, "bhfp": 951.9642432408, "esp_freq": 50, "inactive": "N", "rm": "High water cut, need test at higher choke", "tags": ["S2"]}, {"string": "SY00391", "reservoir": "SIMSIMA R1", "allow": 1400, "tr": 1500, "qo": 1044.8, "wc": 64.3, "bhfp": 1094.4978842704, "esp_freq": 50, "inactive": "N", "rm": "Well Equipped with PWS-VSD", "tags": ["C1"]}, {"string": "SY00401", "reservoir": "SIMSIMA R1", "allow": 320, "tr": 600, "qo": 624.3, "wc": 42.1, "bhfp": 518, "esp_freq": null, "inactive": "N", "rm": "Limit production to get pwf above Pb", "tags": ["S1", "S3"]}, {"string": "SY00411", "reservoir": "SIMSIMA R2", "allow": 800, "tr": 800, "qo": null, "wc": null, "bhfp": 1058.729185968, "esp_freq": null, "inactive": "N", "rm": "", "tags": []}, {"string": "SY00421", "reservoir": "SIMSIMA R1", "allow": 260, "tr": 260, "qo": 250, "wc": 27.5, "bhfp": 795, "esp_freq": 50, "inactive": "N", "rm": "Test the well to check the well potential", "tags": ["S1"]}, {"string": "SY00431", "reservoir": "SIMSIMA R1", "allow": 340, "tr": 340, "qo": 331, "wc": 62.0, "bhfp": null, "esp_freq": 50, "inactive": "N", "rm": "High water cut, Further evalation for ST. Meanwhile shut-in them in case required for water mangement ", "tags": ["S2"]}, {"string": "SY00441", "reservoir": "SIMSIMA R1", "allow": 400, "tr": 400, "qo": 401.0, "wc": 63.3, "bhfp": 875, "esp_freq": 50, "inactive": "N", "rm": "Test the well to check the well potential.  Llow DP choke could be the constraint, VSD is required", "tags": ["C1"]}, {"string": "SY00451", "reservoir": "SIMSIMA R1", "allow": 670, "tr": 670, "qo": 668, "wc": 53.7, "bhfp": 1068, "esp_freq": 50, "inactive": "N", "rm": "Test the well at higher choke  to check the well potential", "tags": []}, {"string": "SY00461", "reservoir": "SIMSIMA R1", "allow": 1300, "tr": 1300, "qo": 1358, "wc": 57.1, "bhfp": 1247.8683677119998, "esp_freq": null, "inactive": "N", "rm": "Low DP choke, VSD required", "tags": ["C1"]}, {"string": "SY00481", "reservoir": "SIMSIMA R2", "allow": 1100, "tr": 1100, "qo": 1118.1, "wc": 57.7, "bhfp": 831, "esp_freq": 50, "inactive": "N", "rm": "Test the well at higher choke to check the well potential. Low DP choke constraint and requires VSD", "tags": ["C1"]}, {"string": "SY00491", "reservoir": "SIMSIMA R1", "allow": 1800, "tr": 1800, "qo": 1863.2, "wc": 45.7, "bhfp": 1160, "esp_freq": 50, "inactive": "N", "rm": "Test the wellat higher choke  to check the well potential", "tags": ["S2"]}, {"string": "SY00501", "reservoir": "SIMSIMA R2", "allow": 900, "tr": 900, "qo": 977.0, "wc": 69.1, "bhfp": 972.9308832, "esp_freq": 50, "inactive": "N", "rm": "Test the well at higher choke to check the well potential", "tags": []}, {"string": "SY00511", "reservoir": "SIMSIMA R1", "allow": 800, "tr": 800, "qo": 807.7, "wc": 45.8, "bhfp": 1046.82460552, "esp_freq": 50, "inactive": "N", "rm": "Test the well to check the well potential", "tags": ["C1"]}, {"string": "SY00541", "reservoir": "SIMSIMA R1", "allow": 360, "tr": 360, "qo": 458, "wc": 38.2, "bhfp": 539.2006065200001, "esp_freq": 50, "inactive": "N", "rm": "Low PIP", "tags": ["S1"]}, {"string": "SY00551", "reservoir": "SIMSIMA R1", "allow": 300, "tr": 300, "qo": 261.5, "wc": 50.0, "bhfp": 645, "esp_freq": 50, "inactive": "N", "rm": "Low PIP, WC increase", "tags": ["S1", "S2"]}, {"string": "SY00561", "reservoir": "SIMSIMA R1", "allow": 0, "tr": 0, "qo": null, "wc": null, "bhfp": null, "esp_freq": null, "inactive": "OBSERVER", "rm": "High water cut ", "tags": ["S2", "S4"]}, {"string": "SY00571", "reservoir": "SIMSIMA R2", "allow": 1300, "tr": 1300, "qo": 788.2, "wc": 63.8, "bhfp": "1225", "esp_freq": 50, "inactive": "N", "rm": "Test the well to check the well potential", "tags": ["C1", "C3"]}, {"string": "SY00581", "reservoir": "SIMSIMA R1", "allow": 500, "tr": 550, "qo": 770.5, "wc": 29.6, "bhfp": 879, "esp_freq": 56, "inactive": "N", "rm": "Limit production to get pwf above Pb", "tags": ["S3"]}, {"string": "SY00591", "reservoir": "SIMSIMA R2", "allow": 420, "tr": 420, "qo": 387.9, "wc": 73.6, "bhfp": 915.5125402220001, "esp_freq": 50, "inactive": "N", "rm": "Low DP across choke, need testing", "tags": ["C1", "S2"]}, {"string": "SY00601", "reservoir": "SIMSIMA R1", "allow": 220, "tr": 250, "qo": 237.0, "wc": 18.6, "bhfp": 1000, "esp_freq": 50, "inactive": "N", "rm": "", "tags": []}, {"string": "SY00611", "reservoir": "SIMSIMA R1", "allow": 520, "tr": 520, "qo": 459, "wc": 82.5, "bhfp": 1196, "esp_freq": 50, "inactive": "N", "rm": "High water cut, FBHP is required (ESP-PIP is NA)", "tags": ["S2"]}, {"string": "SY00621", "reservoir": "SIMSIMA R1", "allow": 240, "tr": 240, "qo": 168, "wc": 60.3, "bhfp": 696, "esp_freq": 50, "inactive": "N", "rm": "Low PIP", "tags": ["S1"]}, {"string": "SY00631", "reservoir": "SIMSIMA R1", "allow": 408.42, "tr": 408, "qo": 314.5, "wc": 70.0, "bhfp": 509, "esp_freq": null, "inactive": "N", "rm": "High water cut, Low DP choke, need test at higher choke", "tags": ["C1", "S2"]}, {"string": "SY00641", "reservoir": "SIMSIMA R1", "allow": 400, "tr": 400, "qo": 236, "wc": 44.2, "bhfp": 1259, "esp_freq": 50, "inactive": "N", "rm": "Limit production to get pwf above Pb", "tags": ["C3", "S1", "S3"]}, {"string": "SY00651", "reservoir": "SIMSIMA R1", "allow": 880, "tr": 880, "qo": 847.2, "wc": 46.9, "bhfp": 610, "esp_freq": 50, "inactive": "N", "rm": "Low DP across choke. Need testing at higher choke", "tags": ["C1"]}, {"string": "SY00661", "reservoir": "SIMSIMA R1", "allow": 530, "tr": 530, "qo": 554.6, "wc": 13.1, "bhfp": 780.4262335999999, "esp_freq": 50, "inactive": "N", "rm": "Low DP across choke ", "tags": ["C1", "S1"]}, {"string": "SY00671", "reservoir": "SIMSIMA R1", "allow": 340, "tr": 340, "qo": 371.0, "wc": 68.9, "bhfp": 880.7082494, "esp_freq": 50, "inactive": "N", "rm": "Test the well to check the well potential", "tags": ["C1", "S2"]}, {"string": "SY00681", "reservoir": "SIMSIMA R1", "allow": 520, "tr": 520, "qo": 579.8, "wc": 36.2, "bhfp": "630", "esp_freq": 50, "inactive": "N", "rm": "Test the well to check the well potential", "tags": ["S1", "S2"]}, {"string": "SY00691", "reservoir": "SIMSIMA R1", "allow": 90, "tr": 90, "qo": 84.8, "wc": 32.4, "bhfp": 640.5450000000001, "esp_freq": null, "inactive": "N", "rm": "Test the well to check the well potential after stimulation", "tags": ["S1"]}, {"string": "SY00701", "reservoir": "SIMSIMA R1", "allow": 350, "tr": 350, "qo": 273.6, "wc": 34.4, "bhfp": 672, "esp_freq": 43, "inactive": "N", "rm": "Low PIP, stimulation required", "tags": ["S1"]}, {"string": "SY00731", "reservoir": "SIMSIMA R2", "allow": 1200, "tr": 1200, "qo": 1305.6, "wc": 69.8, "bhfp": 895.325021376, "esp_freq": 60, "inactive": "N", "rm": "Test the well to check the well potential", "tags": ["C2", "S2"]}, {"string": "SY00741", "reservoir": "SIMSIMA R1", "allow": 120, "tr": 120, "qo": 83.7, "wc": 41.3, "bhfp": 966, "esp_freq": null, "inactive": "N", "rm": "Stimulation required", "tags": ["C3", "S1"]}, {"string": "SY00751", "reservoir": "SIMSIMA R2", "allow": 1580, "tr": 1580, "qo": 1423.3, "wc": 56.4, "bhfp": 912.2299794879999, "esp_freq": 50, "inactive": "N", "rm": "Test the well to check the well potential", "tags": ["S2"]}, {"string": "SY00761", "reservoir": "SIMSIMA R2", "allow": 400, "tr": 400, "qo": 465.8, "wc": 85.3, "bhfp": 958.1730421220001, "esp_freq": 52, "inactive": "N", "rm": "MRT Rrequired", "tags": []}, {"string": "SY00771", "reservoir": "SIMSIMA R2", "allow": 980, "tr": 980, "qo": 1007.6, "wc": 68.1, "bhfp": 1116.746748648, "esp_freq": 54, "inactive": "N", "rm": "High water cut ", "tags": ["S2"]}, {"string": "SY00781", "reservoir": "SIMSIMA R2", "allow": 880, "tr": 880, "qo": 879.5, "wc": 71.1, "bhfp": 638.2991324736, "esp_freq": 60, "inactive": "N", "rm": "Test the well to check the well potential", "tags": ["C2", "S2"]}, {"string": "SY00791", "reservoir": "SIMSIMA R2", "allow": 454, "tr": 454, "qo": 435.0, "wc": 86.7, "bhfp": 1202.9018955956, "esp_freq": 55, "inactive": "N", "rm": "High water cut ", "tags": ["S2"]}, {"string": "SY00801", "reservoir": "SIMSIMA R1", "allow": 362.4, "tr": 400, "qo": 467.9, "wc": 55.6, "bhfp": 859.72007916, "esp_freq": 46, "inactive": "N", "rm": "wc increase", "tags": ["S1", "S2"]}, {"string": "SY00811", "reservoir": "SIMSIMA R1", "allow": 564.22, "tr": 650, "qo": 538.2, "wc": 25.7, "bhfp": 628.3300861248, "esp_freq": 50, "inactive": "N", "rm": "Test higher rate", "tags": ["S1"]}, {"string": "SY00821", "reservoir": "SIMSIMA R2", "allow": 780, "tr": 780, "qo": 942.4, "wc": 71.8, "bhfp": 775.0671957167999, "esp_freq": 55, "inactive": "N", "rm": "wc increase", "tags": ["S2"]}, {"string": "SY00851", "reservoir": "SIMSIMA R1", "allow": 500, "tr": 500, "qo": 500.0, "wc": 29.0, "bhfp": 570, "esp_freq": 50, "inactive": "N", "rm": "Limit production to get pwf above Pb", "tags": ["S1", "S3"]}, {"string": "SY00861", "reservoir": "SIMSIMA R2", "allow": 0, "tr": 0, "qo": null, "wc": 65.2, "bhfp": 772.1051867379999, "esp_freq": 55, "inactive": "N", "rm": "flowing only water.  RM requested to S/D and conduct PLT when possible", "tags": []}, {"string": "SY00871", "reservoir": "SIMSIMA R2", "allow": 780, "tr": 780, "qo": 908.4, "wc": 70.0, "bhfp": 939.6314696544, "esp_freq": 50, "inactive": "N", "rm": "Test the well at higher freq/choke", "tags": ["S2"]}, {"string": "SY00881", "reservoir": "SIMSIMA R2", "allow": 1500, "tr": 1500, "qo": 619.2, "wc": 46.4, "bhfp": 754.8991891008, "esp_freq": 60, "inactive": "N", "rm": "MRT at higher freq", "tags": ["C2", "C3", "S2"]}, {"string": "SY00891", "reservoir": "SIMSIMA R2", "allow": 320, "tr": 320, "qo": 96.2, "wc": 94.2, "bhfp": 1122, "esp_freq": 43, "inactive": "N", "rm": "High water cut, planned for chemical WSO", "tags": ["C3", "S2"]}, {"string": "SY00901", "reservoir": "SIMSIMA R2", "allow": 700, "tr": 750, "qo": 537.3, "wc": 57.6, "bhfp": 557.8081932800001, "esp_freq": 52, "inactive": "N", "rm": "AICV completion, PLT planned", "tags": []}, {"string": "SY00911", "reservoir": "SIMSIMA R2", "allow": 0, "tr": 0, "qo": 119.4, "wc": 93.3, "bhfp": 1328.25991232, "esp_freq": 49, "inactive": "DISCONNECTED", "rm": "High water cut ", "tags": ["S2", "S4"]}, {"string": "SY00921", "reservoir": "SIMSIMA R2", "allow": 1500, "tr": 1500, "qo": 1416.8, "wc": 60.1, "bhfp": 1234.236454752, "esp_freq": 54.46, "inactive": "N", "rm": "Test the well at higher freq >57 Hz", "tags": []}, {"string": "SY00931", "reservoir": "SIMSIMA R1", "allow": 300, "tr": 400, "qo": 476.9, "wc": 26.6, "bhfp": 520.6736693600001, "esp_freq": 48, "inactive": "Y", "rm": "Well available from May onwards", "tags": ["S4"]}, {"string": "SY00941", "reservoir": "SIMSIMA R2", "allow": 1210, "tr": 1600, "qo": 1132.5, "wc": 77.8, "bhfp": 1400.72273824, "esp_freq": 52, "inactive": "N", "rm": "", "tags": ["S2"]}, {"string": "SY00951", "reservoir": "SIMSIMA R2", "allow": 1500, "tr": 1500, "qo": 1319.1, "wc": 50.9, "bhfp": 829, "esp_freq": 50, "inactive": "N", "rm": "", "tags": ["S2"]}, {"string": "SY00961", "reservoir": "SIMSIMA R1", "allow": 80, "tr": 80, "qo": 63.2, "wc": 70.3, "bhfp": 521.0191354, "esp_freq": null, "inactive": "N", "rm": "", "tags": []}, {"string": "SY00971", "reservoir": "SIMSIMA R2", "allow": 700, "tr": 700, "qo": null, "wc": null, "bhfp": null, "esp_freq": null, "inactive": "Y", "rm": "New OP, TR to update after commissioning", "tags": ["S4"]}, {"string": "SY00981", "reservoir": "SIMSIMA R2", "allow": 0, "tr": 0, "qo": 759.3, "wc": 71.7, "bhfp": 845.0577496, "esp_freq": 57, "inactive": "Y", "rm": "well flowing but no data at MPFM, test the well at WH using Testing package", "tags": ["S2", "S4"]}, {"string": "SY00991", "reservoir": "SIMSIMA R2", "allow": 1150, "tr": 1150, "qo": 1190.6, "wc": 68.8, "bhfp": 1052.79902048, "esp_freq": 60, "inactive": "N", "rm": "", "tags": ["C2", "S2"]}, {"string": "SY01001", "reservoir": "SIMSIMA R2", "allow": 1350, "tr": 1350, "qo": 1458.8, "wc": 49.8, "bhfp": 865.6394936, "esp_freq": 60, "inactive": "N", "rm": "", "tags": ["C2"]}, {"string": "SY01011", "reservoir": "SIMSIMA R2", "allow": 1100, "tr": 1100, "qo": 922.9, "wc": 68.6, "bhfp": 1055.0242, "esp_freq": 45, "inactive": "N", "rm": "", "tags": ["S2"]}, {"string": "SY01021", "reservoir": "SIMSIMA R2", "allow": 780, "tr": 780, "qo": 690.0, "wc": 65.4, "bhfp": 590, "esp_freq": 55, "inactive": "N", "rm": "", "tags": ["S2"]}, {"string": "SY01031", "reservoir": "SIMSIMA R2", "allow": 1650, "tr": 1650, "qo": 1746.5, "wc": 38.0, "bhfp": 1022.7052349200001, "esp_freq": 49, "inactive": "N", "rm": "", "tags": []}, {"string": "SY01041", "reservoir": "SIMSIMA R2", "allow": 0, "tr": 0, "qo": 430.8, "wc": 84.7, "bhfp": 1445, "esp_freq": 53, "inactive": "N", "rm": "Test the well at higher Freq/choke", "tags": ["S2"]}, {"string": "SY01051", "reservoir": "SIMSIMA R2", "allow": 1530, "tr": 1530, "qo": 1560.8, "wc": 49.9, "bhfp": 817.57395552, "esp_freq": 59, "inactive": "N", "rm": "Test the well to check the well potential", "tags": ["C2", "S2"]}, {"string": "SY01071", "reservoir": "SIMSIMA R1", "allow": 370, "tr": 370, "qo": 386.3, "wc": 60.3, "bhfp": 985.8960016, "esp_freq": null, "inactive": "N", "rm": "Test the well at higher Freq", "tags": ["S2"]}, {"string": "SY01081", "reservoir": "SIMSIMA R1", "allow": 300, "tr": 300, "qo": 473.0, "wc": 27.4, "bhfp": 529, "esp_freq": 46, "inactive": "N", "rm": "Limit production to get pwf above Pb", "tags": ["S3"]}, {"string": "SY01101", "reservoir": "SIMSIMA R1", "allow": 260, "tr": 300, "qo": 293, "wc": 27.1, "bhfp": 725.951496, "esp_freq": 42, "inactive": "N", "rm": "test at higher freq", "tags": ["C2", "S1"]}, {"string": "SY01111", "reservoir": "SIMSIMA R1", "allow": 424, "tr": 450, "qo": 643.0, "wc": 21.8, "bhfp": 598, "esp_freq": 55, "inactive": "N", "rm": "", "tags": ["S1"]}, {"string": "SY01121", "reservoir": "SIMSIMA R1", "allow": 600, "tr": 600, "qo": 688.2, "wc": 15.8, "bhfp": 503, "esp_freq": null, "inactive": "N", "rm": "", "tags": ["S1"]}, {"string": "SY01131", "reservoir": "SIMSIMA R1", "allow": 877.16, "tr": 900, "qo": 882.6, "wc": 26.4, "bhfp": 679.74811936, "esp_freq": 75, "inactive": "N", "rm": "ESP running at max. Frequency", "tags": ["C2", "S1", "S2"]}, {"string": "SY01141", "reservoir": "SIMSIMA R1", "allow": 700, "tr": 700, "qo": 763.8, "wc": 38.6, "bhfp": 519.70061104, "esp_freq": 55, "inactive": "N", "rm": "", "tags": ["S2"]}, {"string": "SY01151", "reservoir": "SIMSIMA R1", "allow": 0, "tr": 0, "qo": 512, "wc": 12.0, "bhfp": 567, "esp_freq": 44, "inactive": "N", "rm": "Low PIP", "tags": ["S1"]}, {"string": "SY01161", "reservoir": "SIMSIMA R1", "allow": 700, "tr": 700, "qo": 677.5, "wc": 64.3, "bhfp": 875.6438811200001, "esp_freq": 54.9, "inactive": "N", "rm": "MRT required", "tags": []}, {"string": "SY01171", "reservoir": "SIMSIMA R1", "allow": 0, "tr": 460, "qo": 494, "wc": 14.9, "bhfp": 515, "esp_freq": 48, "inactive": "Y", "rm": "Well available from Jun onwards", "tags": ["S1", "S4"]}, {"string": "SY01181", "reservoir": "SIMSIMA R1", "allow": 750, "tr": 750, "qo": null, "wc": null, "bhfp": null, "esp_freq": null, "inactive": "N", "rm": "New OP, TR to update after commissioning", "tags": []}, {"string": "SY01191", "reservoir": "SIMSIMA R1", "allow": 1264, "tr": 1300, "qo": 1222.1, "wc": 19.1, "bhfp": 600.24070352, "esp_freq": 52, "inactive": "N", "rm": "Low PIP", "tags": ["S1", "S2"]}, {"string": "SY01201", "reservoir": "SIMSIMA R1", "allow": 350, "tr": 350, "qo": 790.0, "wc": 2.1, "bhfp": 663, "esp_freq": 47.43, "inactive": "N", "rm": "Limit production to get pwf above Pb", "tags": ["S1", "S3"]}, {"string": "SY01211", "reservoir": "SIMSIMA R2", "allow": 1200, "tr": 1200, "qo": 1079, "wc": 59.5, "bhfp": null, "esp_freq": 45, "inactive": "N", "rm": "test at higher freq > 45 Hz", "tags": ["C2"]}, {"string": "SY01221", "reservoir": "SIMSIMA R2", "allow": 320, "tr": 320, "qo": null, "wc": null, "bhfp": 665, "esp_freq": null, "inactive": "N", "rm": "Low PIP, PLT required", "tags": ["S1"]}, {"string": "SY01231", "reservoir": "SIMSIMA R2", "allow": 50, "tr": 50, "qo": 32.0, "wc": 91.8, "bhfp": 810.4460544, "esp_freq": 44, "inactive": "N", "rm": "Evaluate a sidetrack", "tags": ["C3"]}, {"string": "SY01241", "reservoir": "SIMSIMA R2", "allow": 1050, "tr": 1050, "qo": 1079.8, "wc": 61.5, "bhfp": 845, "esp_freq": 55.24, "inactive": "N", "rm": "", "tags": ["S2"]}, {"string": "SY01271", "reservoir": "SIMSIMA R1", "allow": 395.66, "tr": 500, "qo": 378.2, "wc": 49.0, "bhfp": 860.65952032, "esp_freq": 46, "inactive": "N", "rm": "wc increase", "tags": ["S2"]}, {"string": "SY01281", "reservoir": "SIMSIMA R1", "allow": 500, "tr": 500, "qo": 468.8, "wc": 42.6, "bhfp": 605.17641888, "esp_freq": 45, "inactive": "N", "rm": "", "tags": ["S2"]}, {"string": "SY01291", "reservoir": "SIMSIMA R1", "allow": 50, "tr": 50, "qo": 15.8, "wc": 61.5, "bhfp": 975, "esp_freq": 40, "inactive": "N", "rm": "Low PIP, low productive well, eavluate WO for wellperforation or Re-entry", "tags": ["C3", "S1"]}, {"string": "SY01301", "reservoir": "SIMSIMA R1", "allow": 400, "tr": 400, "qo": 385.9, "wc": 57.6, "bhfp": 545.60756, "esp_freq": 53, "inactive": "N", "rm": "", "tags": ["S1"]}, {"string": "SY01311", "reservoir": "SIMSIMA R1", "allow": 270, "tr": 270, "qo": 277.2, "wc": 19.3, "bhfp": 563.6219494, "esp_freq": 43, "inactive": "N", "rm": "Low PIP and BHFP", "tags": ["S1"]}, {"string": "SY01321", "reservoir": "SIMSIMA R1", "allow": 550, "tr": 550, "qo": 1001.1, "wc": 10.5, "bhfp": 635, "esp_freq": 59.83, "inactive": "N", "rm": "Limit production to get pwf above Pb", "tags": ["C2", "S1", "S3"]}, {"string": "SY01331", "reservoir": "SIMSIMA R1", "allow": 100, "tr": 100, "qo": 42, "wc": 62.8, "bhfp": 586.49047056, "esp_freq": 40, "inactive": "N", "rm": "Low PIP, low productive well ", "tags": ["C3", "S1", "S2"]}, {"string": "SY01341", "reservoir": "SIMSIMA R2", "allow": 511, "tr": 511, "qo": 528, "wc": 79.4, "bhfp": 1076, "esp_freq": 59, "inactive": "N", "rm": "High water cut ", "tags": ["C2", "S2"]}, {"string": "SY01351", "reservoir": "SIMSIMA R1", "allow": 200, "tr": 200, "qo": 387.9, "wc": 51.0, "bhfp": 502, "esp_freq": 53.8, "inactive": "N", "rm": "Limit production to get pwf above Pb", "tags": ["S1", "S2", "S3"]}, {"string": "SY01501", "reservoir": "SIMSIMA R2", "allow": 1650, "tr": 1650, "qo": 1707.6, "wc": 9.4, "bhfp": 1038.9075264, "esp_freq": 47, "inactive": "N", "rm": "", "tags": []}, {"string": "SY01511", "reservoir": "SIMSIMA R2", "allow": 1650, "tr": 1650, "qo": 1737.8, "wc": 5.4, "bhfp": 1189, "esp_freq": 51, "inactive": "N", "rm": "", "tags": []}, {"string": "SY01521", "reservoir": "SIMSIMA R1", "allow": 850, "tr": 850, "qo": null, "wc": null, "bhfp": 711, "esp_freq": null, "inactive": "N", "rm": "", "tags": []}, {"string": "SY01531", "reservoir": "SIMSIMA R1", "allow": 780, "tr": 800, "qo": 727.2, "wc": 15.3, "bhfp": 598, "esp_freq": 50, "inactive": "N", "rm": "BHFP surevy required", "tags": []}, {"string": "SY01541", "reservoir": "SIMSIMA R1", "allow": 920.42, "tr": 1100, "qo": 1011, "wc": 27.5, "bhfp": 867, "esp_freq": 60, "inactive": "N", "rm": "", "tags": ["C2", "S2"]}, {"string": "SY01571", "reservoir": "SIMSIMA R2", "allow": 220, "tr": 220, "qo": 215.7, "wc": 89.9, "bhfp": 916.6, "esp_freq": 49, "inactive": "N", "rm": "", "tags": ["S2"]}, {"string": "SY01581", "reservoir": "SIMSIMA R2", "allow": 1450, "tr": 1600, "qo": 1423.7, "wc": 14.3, "bhfp": 986, "esp_freq": 39, "inactive": "N", "rm": "water cut increase, recommend to reduce offtake and conduct MRT", "tags": ["S2"]}, {"string": "SY01591", "reservoir": "SIMSIMA R1", "allow": 400, "tr": 400, "qo": 435, "wc": 60.9, "bhfp": 598.78, "esp_freq": 50, "inactive": "N", "rm": "", "tags": []}, {"string": "SY01601", "reservoir": "SIMSIMA R2", "allow": 950, "tr": 950, "qo": 658.1, "wc": 64.4, "bhfp": 985.6, "esp_freq": 48, "inactive": "N", "rm": "water cut increase", "tags": ["C3"]}, {"string": "SY01611", "reservoir": "SIMSIMA R1", "allow": 180, "tr": 180, "qo": 105.3, "wc": 35.4, "bhfp": 825, "esp_freq": 52, "inactive": "N", "rm": "", "tags": ["C3"]}, {"string": "SY01621", "reservoir": "SIMSIMA R1", "allow": 400, "tr": 400, "qo": 354, "wc": 55.9, "bhfp": 630, "esp_freq": 45, "inactive": "N", "rm": "", "tags": []}, {"string": "SY0163", "reservoir": "SIMSIMA R2", "allow": 1350, "tr": 1350, "qo": 1129.6, "wc": 26.8, "bhfp": 1211, "esp_freq": 44, "inactive": "N", "rm": "PLT plan", "tags": []}, {"string": "SY01641", "reservoir": "SIMSIMA R2", "allow": 1000, "tr": 1000, "qo": 1340, "wc": 31.6, "bhfp": 1009, "esp_freq": 44, "inactive": "N", "rm": "water cut increase, PLT plan", "tags": []}, {"string": "SY01661", "reservoir": "SIMSIMA R2", "allow": 0, "tr": 150, "qo": 151.8, "wc": 89.9, "bhfp": 669, "esp_freq": 49, "inactive": "N", "rm": "High water cut, Test at higher freq", "tags": ["C2", "S1", "S2"]}, {"string": "SY01731", "reservoir": "SIMSIMA R3", "allow": 1000, "tr": 1000, "qo": 1437.1, "wc": 21.3, "bhfp": 632, "esp_freq": 57, "inactive": "N", "rm": "water cut increase, plan PLT and conduct MRT", "tags": []}, {"string": "SY01741", "reservoir": "SIMSIMA R1", "allow": 260, "tr": 260, "qo": 228, "wc": 53.4, "bhfp": 517.6, "esp_freq": 48, "inactive": "N", "rm": "", "tags": ["S1", "S2"]}, {"string": "SY01781", "reservoir": "SIMSIMA R1", "allow": 300, "tr": 340, "qo": null, "wc": 20, "bhfp": 1225, "esp_freq": null, "inactive": "N", "rm": "No test data and requires to be tested", "tags": []}, {"string": "SY01891", "reservoir": "SIMSIMA R1", "allow": 700, "tr": 750, "qo": null, "wc": 34, "bhfp": null, "esp_freq": null, "inactive": "N", "rm": "low BHFP close to the GL", "tags": ["S3"]}, {"string": "SY01941", "reservoir": "SIMSIMA R2", "allow": 1400, "tr": 1600, "qo": 713, "wc": 62, "bhfp": null, "esp_freq": null, "inactive": "N", "rm": "New OP ", "tags": ["C3"]}];
+const GAPS = [["January-2026 FCT report", "Surface bottleneck quantification (§4.7) cannot move past estimate"], ["GAP/Prosper IPM surface model", "Needed to run back-pressure sensitivities"], ["G2V2 reservoir model — ML#5", "Needed to quantify §4.5 oil response and §4.6 R1/R2 rebalancing"], ["Cluster #2 / SY-148 WS FCT", "RM-mandated prerequisite for SY-180 commissioning (§4.5)"], ["PIDs / PFDs / vendor capacity sheets", "CDS, RDS-1, RDS-2, WI clusters"], ["Produced water lab analysis", "TDS, scaling, particulates, H₂S — needed for §4.6 design"], ["WHIP-vs-time and WHPP-vs-time per well", "Validate flowline-restriction hypothesis (§4.7)"], ["Injector PLT / CBL logs (139-SS, 145-SS)", "Needed for §4.6 (a) integrity hypothesis"], ["Per-well PI screening across 32 stim candidates", "Extension of 1.1C methodology to scope §4.1"]];
+
+// ===== TABS =====
+document.querySelectorAll('.tabbtn').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.tabbtn').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  document.getElementById(b.dataset.tab).classList.add('active');
+}));
+
+// ===== Chart.js defaults (guarded — page still works if CDN failed) =====
+const CHART_AVAILABLE = (typeof Chart !== 'undefined');
+if (CHART_AVAILABLE) {
+  Chart.defaults.color = '#9aa3b2';
+  Chart.defaults.borderColor = '#232733';
+  Chart.defaults.font.family = '"IBM Plex Sans", system-ui, sans-serif';
+  Chart.defaults.font.size = 12;
+} else {
+  console.warn('Chart.js not loaded — charts will display placeholders, data tables unaffected.');
+  document.querySelectorAll('canvas').forEach(c => {
+    const ph = document.createElement('div');
+    ph.style.cssText = 'padding:20px; color:var(--sub); text-align:center; border:1px dashed var(--border); border-radius:6px; font-family:"JetBrains Mono",monospace; font-size:12px;';
+    ph.textContent = '[Chart unavailable — Chart.js failed to load]';
+    c.replaceWith(ph);
+  });
+}
+function safeChart(el, cfg) { if (CHART_AVAILABLE && el) new Chart(el, cfg); }
+
+// ===== Baseline chart =====
+safeChart(document.getElementById('baseline-chart'), {
+  type: 'bar',
+  data: {
+    labels: ['Actual (FAR)','Allowable','TR','Allow w/ Inactive','Deliv. ceiling'],
+    datasets: [{ label: 'BOPD',
+      data: [75733, 76671, 79983, 80591, 102752],
+      backgroundColor: ['#f59e0b','#0891b2','#34d399','#06b6d4','#1e3a5f']
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: '#1b1f27' }, ticks: { callback: v => v.toLocaleString() } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// ===== WI chart =====
+safeChart(document.getElementById('wi-chart'), {
+  type: 'bar',
+  data: {
+    labels: ['w/ SY-175+180','w/o SY-175+180','Tech rate','Actual'],
+    datasets: [
+      { label: 'Cluster #1', data: [26000, 26000, 42200, 34000], backgroundColor: '#0891b2' },
+      { label: 'Cluster #2', data: [24600, 19000, 28800, 19000], backgroundColor: '#06b6d4' }
+    ]
+  },
+  options: {
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } },
+    scales: {
+      y: { beginAtZero: true, stacked: true, grid: { color: '#1b1f27' },
+           ticks: { callback: v => v.toLocaleString() } },
+      x: { stacked: true, grid: { display: false } }
+    }
+  }
+});
+
+// ===== Bottleneck table =====
+const btBody = document.getElementById('bt-body');
+Object.entries(CATS).forEach(([id, c]) => {
+  const maxBOPD = 12000;
+  const pct = c.bopd_lost ? Math.round(c.bopd_lost / maxBOPD * 100) : 0;
+  const groupTag = c.group.includes('Surface') ? 'surface'
+    : c.group.includes('Water') ? 'water'
+    : c.group.includes('Completion') ? 'completion' : 'subsurface';
+  btBody.insertAdjacentHTML('beforeend', `
+    <tr>
+      <td><span class="tag">${id}</span></td>
+      <td>${c.label}</td>
+      <td><span class="tag ${groupTag}">${c.group}</span></td>
+      <td class="num">${c.wells_affected ?? '—'}</td>
+      <td><div class="bar-cell"><div class="bar"><i style="width:${pct}%"></i></div><span class="num">${c.bopd_lost ? c.bopd_lost.toLocaleString() : 'TBD'}</span></div></td>
+      <td><span class="tag">${c.opp}</span></td>
+    </tr>`);
+});
+
+// ===== Opportunity ranking chart =====
+const ranked = [...OPPS].sort((a,b) => ((b.lo+b.hi)/2)-((a.lo+a.hi)/2));
+safeChart(document.getElementById('opp-rank-chart'), {
+  type: 'bar',
+  data: {
+    labels: ranked.map(o => `§${o.id}`),
+    datasets: [
+      { label: '2026 low',  data: ranked.map(o => o.lo), backgroundColor: '#f59e0b' },
+      { label: '2026 range (low→high)', data: ranked.map(o => o.hi - o.lo), backgroundColor: 'rgba(245,158,11,0.35)' }
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 10 } },
+      tooltip: { callbacks: {
+        title: (it) => { const o = ranked[it[0].dataIndex]; return `§${o.id} ${o.title}`; },
+        label: (it) => { const o = ranked[it.dataIndex]; return `${o.lo.toLocaleString()}–${o.hi.toLocaleString()} BOPD · ${o.conf}`; }
+      } }
+    },
+    scales: {
+      x: { stacked: true, grid: { color: '#1b1f27' },
+           ticks: { callback: v => v.toLocaleString() + ' BOPD' } },
+      y: { stacked: true, grid: { display: false } }
+    }
+  }
+});
+
+// ===== Sankey-style SVG flow =====
+function renderSankey() {
+  const host = document.getElementById('sankey-host');
+  const start = 75733;
+  const incrs = ranked.map(o => ({ id: o.id, title: o.title, lo: o.lo, hi: o.hi,
+    mid: (o.lo+o.hi)/2,
+    actual_inc: ['4.1','4.3','4.4'].includes(o.id) ? Math.round(o.lo*0.75) : o.lo }));
+  const cum = [start];
+  let c = start;
+  incrs.forEach(i => { c += i.actual_inc; cum.push(c); });
+  const target = c;
+  const W = 1500, H = 360, padL = 60, padR = 40, padT = 30, padB = 90;
+  const xs = Array.from({length: cum.length}, (_,i) => padL + i*(W-padL-padR)/(cum.length-1));
+  const yScale = v => H - padB - (v - start*0.96) * (H - padT - padB) / (target*1.02 - start*0.96);
+  const colors = ['#0891b2','#f59e0b','#06b6d4','#34d399','#1e3a5f','#475569','#fbbf24','#16a34a'];
+
+  let svg = `<svg class="sankey" viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet">`;
+  // baseline grid
+  svg += `<line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#232733" stroke-dasharray="4 4"/>`;
+  // Wedges
+  for (let i = 0; i < incrs.length; i++) {
+    const x0 = xs[i], x1 = xs[i+1];
+    const y0a = yScale(cum[i]), y0b = H - padB;
+    const y1a = yScale(cum[i+1]), y1b = H - padB;
+    svg += `<path d="M ${x0} ${y0a} L ${x1} ${y1a} L ${x1} ${y1b} L ${x0} ${y0b} Z" fill="${colors[i % colors.length]}" opacity="0.85"><title>§${incrs[i].id} ${incrs[i].title}\n+${incrs[i].actual_inc.toLocaleString()} BOPD (2026 low, overlap-adjusted)\n2026 range ${incrs[i].lo.toLocaleString()}–${incrs[i].hi.toLocaleString()}</title></path>`;
+    // wedge label
+    const xm = (x0+x1)/2, ym = (yScale(cum[i+1]) + (H-padB))/2;
+    svg += `<text x="${xm}" y="${ym}" text-anchor="middle" font-size="11" fill="#0c0d10" font-weight="700">§${incrs[i].id}</text>`;
+    svg += `<text x="${xm}" y="${ym+13}" text-anchor="middle" font-size="10" fill="#0c0d10">+${incrs[i].actual_inc.toLocaleString()}</text>`;
+  }
+  // cumulative line
+  let path = `M ${xs[0]} ${yScale(cum[0])}`;
+  for (let i = 1; i < cum.length; i++) path += ` L ${xs[i]} ${yScale(cum[i])}`;
+  svg += `<path d="${path}" fill="none" stroke="#f5f7fa" stroke-width="2.5"/>`;
+  cum.forEach((v, i) => {
+    svg += `<circle cx="${xs[i]}" cy="${yScale(v)}" r="4" fill="#f59e0b" stroke="#0c0d10" stroke-width="2"/>`;
+    svg += `<text x="${xs[i]}" y="${yScale(v)-12}" text-anchor="middle" font-size="11" fill="#f5f7fa" font-weight="700">${v.toLocaleString()}</text>`;
+  });
+  // x-axis labels
+  const labels = ['Start (FAR)', ...incrs.map(i => '§' + i.id), 'Envelope'];
+  labels.forEach((l, i) => {
+    svg += `<text x="${xs[i] !== undefined ? xs[i] : xs[xs.length-1]}" y="${H-padB+24}" text-anchor="middle" font-size="11" class="axis">${l}</text>`;
+  });
+  svg += `<text x="${padL}" y="${padT}" font-size="12" fill="#9aa3b2">BOPD →</text>`;
+  svg += `<text x="${xs[0]}" y="${yScale(start)+22}" text-anchor="middle" font-size="11" fill="#9aa3b2">Current</text>`;
+  svg += `<text x="${xs[xs.length-1]}" y="${yScale(target)+22}" text-anchor="middle" font-size="11" fill="#f59e0b">+${(target-start).toLocaleString()} BOPD</text>`;
+  svg += `</svg>`;
+  host.innerHTML = svg;
+}
+renderSankey();
+
+// ===== category bar charts =====
+const catEntries = Object.entries(CATS);
+safeChart(document.getElementById('cat-wells-chart'), {
+  type: 'bar',
+  data: {
+    labels: catEntries.map(([k,v]) => `${k} · ${v.label.substring(0,22)}`),
+    datasets: [{ data: catEntries.map(([k,v]) => v.wells_affected || 0),
+      backgroundColor: catEntries.map(([k,v]) => v.color) }]
+  },
+  options: { indexAxis: 'y', plugins: { legend: { display: false } },
+    scales: { x: { grid: { color: '#1b1f27' } }, y: { grid: { display: false } } } }
+});
+const quant = catEntries.filter(([k,v]) => v.bopd_lost);
+safeChart(document.getElementById('cat-bopd-chart'), {
+  type: 'bar',
+  data: {
+    labels: quant.map(([k,v]) => `${k} · ${v.label.substring(0,22)}`),
+    datasets: [{ data: quant.map(([k,v]) => v.bopd_lost),
+      backgroundColor: quant.map(([k,v]) => v.color) }]
+  },
+  options: { indexAxis: 'y', plugins: { legend: { display: false } },
+    scales: { x: { grid: { color: '#1b1f27' }, ticks: { callback: v => v.toLocaleString() } },
+              y: { grid: { display: false } } } }
+});
+
+// ===== Opportunities accordion =====
+const oppsList = document.getElementById('opps-list');
+const confClass = c => c === 'High' ? 'conf-h' : c === 'Med-High' ? 'conf-mh' : 'conf-m';
+ranked.forEach(o => {
+  const mid = (o.lo + o.hi) / 2;
+  const maxGain = 3500;
+  const fillPct = Math.min(100, (o.hi / maxGain) * 100);
+  const loPct = (o.lo / maxGain) * 100;
+  oppsList.insertAdjacentHTML('beforeend', `
+    <div class="opp-card">
+      <div class="opp-head">
+        <span class="opp-id">§${o.id}</span>
+        <span class="opp-title">${o.title}</span>
+        <span class="conf-pill ${confClass(o.conf)}">${o.conf}</span>
+        <span class="opp-gain">+${o.lo.toLocaleString()}${o.lo!==o.hi?'–'+o.hi.toLocaleString():''} BOPD</span>
+      </div>
+      <div class="opp-body">
+        <div class="kpi-mini">
+          <div><div class="l">2026 Realistic</div><div class="v">${o.lo.toLocaleString()}–${o.hi.toLocaleString()}</div></div>
+          <div><div class="l">Full Potential</div><div class="v">${o.full_lo.toLocaleString()}–${o.full_hi.toLocaleString()}</div></div>
+          <div><div class="l">Capex Bracket</div><div class="v">$${o.capex_lo}–${o.capex_hi}M</div></div>
+        </div>
+        <h4>Gain range — 2026 realistic</h4>
+        <div class="range-bar"><div class="fill" style="left:${loPct}%; width:${fillPct-loPct}%"></div><span class="label">${o.lo.toLocaleString()} → ${o.hi.toLocaleString()} BOPD</span></div>
+        <h4>Mechanism</h4><p>${o.mech}</p>
+        <h4>Prerequisite data / work</h4><p>${o.prereq}</p>
+        <h4>Category</h4><p>${o.category}</p>
+      </div>
+    </div>`);
+});
+document.querySelectorAll('.opp-card .opp-head').forEach(h =>
+  h.addEventListener('click', () => h.parentElement.classList.toggle('open')));
+
+// ===== Wells table =====
+const wellsBody = document.getElementById('wells-body');
+const tagColor = t => {
+  if (t.startsWith('S')) return 'subsurface';
+  if (t.startsWith('C')) return t === 'C2' ? 'completion' : 'surface';
+  return 'water';
+};
+function fmt(v, suffix='') { return (v === null || v === undefined || v === '') ? '—' : (typeof v === 'number' ? v.toLocaleString() : v) + suffix; }
+let sortKey = 'allow', sortDesc = true;
+let activeChips = new Set();
+let searchText = '';
+
+function renderWells() {
+  const f = searchText.toLowerCase();
+  let rows = WELLS.filter(w => {
+    if (activeChips.size && !w.tags.some(t => activeChips.has(t))) return false;
+    if (!f) return true;
+    return (w.string + ' ' + w.reservoir + ' ' + w.rm + ' ' + w.tags.join(' ')).toLowerCase().includes(f);
+  });
+  rows.sort((a,b) => {
+    let va = a[sortKey], vb = b[sortKey];
+    if (Array.isArray(va)) va = va.join(',');
+    if (Array.isArray(vb)) vb = vb.join(',');
+    if (va === null || va === undefined) va = '';
+    if (vb === null || vb === undefined) vb = '';
+    if (typeof va === 'number' && typeof vb === 'number') return sortDesc ? vb-va : va-vb;
+    return sortDesc ? String(vb).localeCompare(String(va)) : String(va).localeCompare(String(vb));
+  });
+  wellsBody.innerHTML = rows.map(w => `
+    <tr>
+      <td><b>${w.string}</b></td>
+      <td>${w.reservoir}</td>
+      <td class="num">${fmt(w.allow)}</td>
+      <td class="num">${fmt(w.tr)}</td>
+      <td class="num">${fmt(w.qo)}</td>
+      <td class="num">${w.wc !== null ? w.wc.toFixed(1) : '—'}</td>
+      <td class="num">${fmt(w.bhfp)}</td>
+      <td class="num">${fmt(w.esp_freq)}</td>
+      <td>${w.inactive === 'Y' ? '<span class="tag bad">INA</span>' : w.inactive === 'DISCONNECTED' ? '<span class="tag bad">DISC</span>' : w.inactive === 'OBSERVER' ? '<span class="tag warn">OBS</span>' : '<span class="tag good">ON</span>'}</td>
+      <td>${w.tags.map(t => `<span class="tag ${tagColor(t)}">${t}</span>`).join('')}</td>
+      <td style="color:var(--sub); font-size:12px;">${w.rm}</td>
+    </tr>`).join('');
+}
+
+// chip row
+const chipRow = document.getElementById('chip-row');
+chipRow.innerHTML = Object.keys(CATS).map(k => `<span class="chip" data-cat="${k}">${k} (${CATS[k].wells_affected || 0})</span>`).join('') + '<span class="chip" data-cat="__clear__">Clear filters</span>';
+chipRow.addEventListener('click', e => {
+  if (!e.target.classList.contains('chip')) return;
+  const k = e.target.dataset.cat;
+  if (k === '__clear__') { activeChips.clear(); chipRow.querySelectorAll('.chip').forEach(x => x.classList.remove('active')); }
+  else {
+    if (activeChips.has(k)) { activeChips.delete(k); e.target.classList.remove('active'); }
+    else { activeChips.add(k); e.target.classList.add('active'); }
+  }
+  renderWells();
+});
+
+document.getElementById('wells-filter').addEventListener('input', e => { searchText = e.target.value; renderWells(); });
+document.querySelectorAll('#wells-table th').forEach(th => th.addEventListener('click', () => {
+  const k = th.dataset.k;
+  if (sortKey === k) sortDesc = !sortDesc; else { sortKey = k; sortDesc = true; }
+  renderWells();
+}));
+renderWells();
+
+// ===== Gaps =====
+document.getElementById('gaps-body').innerHTML = GAPS.map((g, i) =>
+  `<tr><td><span class="tag">${i+1}</span></td><td><b>${g[0]}</b></td><td style="color:var(--sub)">${g[1]}</td></tr>`).join('');
+
+</script>
+</body></html>
