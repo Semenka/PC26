@@ -1,0 +1,125 @@
+cmpl,uwi,reservoir,string,allowable,tr,qo,wc,pi,bhfp,freq,inactive,cats,rm
+SY00011,SY - 0001 - TB,SIMSIMA R2,TB,90.0,90.0,75.7,95.679,,1061.0,50.0,N,S2,"High water cut ,WO for production enhancement (squeeze perfos and new perforations)"
+SY00041,SY - 0004 - TB,SIMSIMA R1,TB,980.0,1000.0,1014.24,50.029,,739.2480838015999,50.0,N,S1;C1,Test the well to check the well potential
+SY00111,SY - 0011 - TB,SIMSIMA R2,TB,120.0,120.0,163.78,87.225,,1444.0,,N,S2,High water cut
+SY00121,SY - 0012 - TB,SIMSIMA R1,TB,1300.0,1500.0,1193.0,57.9,,1127.5148994607998,50.0,N,,MRT required to check well potential
+SY00141,SY - 0014 - TB,SIMSIMA R1,TB,650.0,670.0,599.7,38.876,,573.0,50.0,N,S1;C1,"Low PIP, Low DP across choke"
+SY00151,SY - 0015 - TB,SIMSIMA R2,TB,300.0,340.0,316.36,86.656,,966.8804012287999,50.0,N,S2;C1,"High water cut , Low DP across choke"
+SY00191,SY - 0019 - TB,SIMSIMA R1,TB,500.0,530.0,432.0,40.984,,690.0,,N,,Well Equipped with PWS-VSD
+SY00201,SY - 0020 - TB,SIMSIMA R2,TB,0.0,0.0,456.27,90.362,,857.7414122419999,,Y,S4;S2;C1,"High water cut , Low DP across choke"
+SY00211,SY - 0021 - TB,SIMSIMA R1,TB,300.0,300.0,100.2,76.565,,672.4611762,50.0,N,S1;S2,Low PIP. Test the well to check the well potential
+SY00221,SY - 0022 - TB,SIMSIMA R1,TB,300.0,400.0,443.24,49.022,,506.0,50.0,N,S1;C1,Test the well to check the well potential
+SY00241,SY - 0024 - TB,SIMSIMA R1,TB,470.0,470.0,,,,1350.4342165612002,,N,S2;S5,"High water cut , propose to reduce it to improve sector VRR in case SY-175 and SY-180 start injection in Q2-26"
+SY00251,SY - 0025 - TB,SIMSIMA R2,TB,0.0,270.0,272.84,94.005,,1239.0,50.0,N,S2,High water cut.Meanwhile shut-in them in case required for water mangement
+SY00261,SY - 0026 - TB,SIMSIMA R2,TB,770.0,800.0,752.32,76.156,,1370.0,50.0,N,S2,Well Equipped with PWS-VSD
+SY00271,SY - 0027 - TB,SIMSIMA R1,TB,850.0,850.0,820.94,37.753,,629.0,50.0,N,S1,Test the well to check the well potential
+SY00321,SY - 0032 - TB,SIMSIMA R1,TB,0.0,0.0,51.74,95.517,,,,Disconnected,S2,Test the well to check the well potential
+SY00341,SY - 0034 - TB,SIMSIMA R2,TB,0.0,0.0,,62.318,,1215.0,,N,S2,ESP failed - WO requires and be available by Jul.
+SY00351,SY - 0035 - TB,SIMSIMA R2,TB,0.0,0.0,810.66,71.92,,1467.0,50.0,Y,S4;S2,VSD PWS replacement done
+SY00371,SY - 0037 - TB,SIMSIMA R2,TB,650.0,650.0,639.84,76.21,,948.0,50.0,N,S2;C1,"High water cut, Low DP choke, need test at higher choke"
+SY00381,SY - 0038 - TB,SIMSIMA R2,TB,300.0,300.0,431.44,79.177,,951.9642432408,50.0,N,S2,"High water cut, need test at higher choke"
+SY00391,SY - 0039 - TB,SIMSIMA R1,TB,1400.0,1500.0,1044.82,64.295,,1094.4978842704,50.0,N,S2;C1,Well Equipped with PWS-VSD
+SY00401,SY - 0040 - TB,SIMSIMA R1,TB,320.0,600.0,624.26,42.056,,518.0,,N,S1;S3,Limit production to get pwf above Pb
+SY00411,SY - 0041 - TB,SIMSIMA R2,TB,800.0,800.0,,,,1058.729185968,,,,
+SY00421,SY - 0042 - TB,SIMSIMA R1,TB,260.0,260.0,250.0,27.536,,795.0,50.0,N,S1,Test the well to check the well potential
+SY00431,SY - 0043 - TB,SIMSIMA R1,TB,340.0,340.0,331.0,61.954,,,50.0,N,S1;S2,"High water cut, Further evalation for ST. Meanwhile shut-in them in case required for water mangement"
+SY00441,SY - 0044 - TB,SIMSIMA R1,TB,400.0,400.0,401.04,63.261,,875.0,50.0,N,S2;C1,"Test the well to check the well potential.  Llow DP choke could be the constraint, VSD is required"
+SY00451,SY - 0045 - TB,SIMSIMA R1,TB,670.0,670.0,668.0,53.708,,1068.0,50.0,N,,Test the well at higher choke  to check the well potential
+SY00461,SY - 0046 - TB,SIMSIMA R1,TB,1300.0,1300.0,1358.0,57.147,,1247.8683677119998,,N,C1,"Low DP choke, VSD required"
+SY00481,SY - 0048 - TB,SIMSIMA R2,TB,1100.0,1100.0,1118.06,57.669,,831.0,50.0,N,C1,Test the well at higher choke to check the well potential. Low DP choke constraint and requires VSD
+SY00491,SY - 0049 - TB,SIMSIMA R1,TB,1800.0,1800.0,1863.2,45.683,,1160.0,50.0,N,S2,Test the wellat higher choke  to check the well potential
+SY00501,SY - 0050 - TB,SIMSIMA R2,TB,900.0,900.0,977.04,69.076,,972.9308832,50.0,N,S2,Test the well at higher choke to check the well potential
+SY00511,SY - 0051 - TB,SIMSIMA R1,TB,800.0,800.0,807.72,45.81,,1046.82460552,50.0,N,C1,Test the well to check the well potential
+SY00541,SY - 0054 - TB,SIMSIMA R1,TB,360.0,360.0,458.0,38.16,,539.2006065200001,50.0,N,S1,Low PIP
+SY00551,SY - 0055 - TB,SIMSIMA R1,TB,300.0,300.0,261.54,49.954,,645.0,50.0,N,S1;S2,"Low PIP, WC increase"
+SY00561,SY - 0056 - TB,SIMSIMA R1,TB,,0.0,,,,,,Observer,S2,High water cut
+SY00571,SY - 0057 - TB,SIMSIMA R2,TB,1300.0,1300.0,788.16,63.846,,1225.0,50.0,N,S2;C1,Test the well to check the well potential
+SY00581,SY - 0058 - TB,SIMSIMA R1,TB,500.0,550.0,770.52,29.567,,879.0,56.0,N,S3,Limit production to get pwf above Pb
+SY00591,SY - 0059 - TB,SIMSIMA R2,TB,420.0,420.0,387.9,73.62,,915.5125402220001,50.0,N,S2;C1,"Low DP across choke, need testing"
+SY00601,SY - 0060 - TB,SIMSIMA R1,TB,220.0,250.0,236.96,18.582,,1000.0,50.0,,,
+SY00611,SY - 0061 - TB,SIMSIMA R1,TB,520.0,520.0,459.0,82.53,,1196.0,50.0,N,S2,"High water cut, FBHP is required (ESP-PIP is NA)"
+SY00621,SY - 0062 - TB,SIMSIMA R1,TB,240.0,240.0,168.0,60.284,,696.0,50.0,N,S1;S2,Low PIP
+SY00631,SY - 0063 - TB,SIMSIMA R1,TB,408.42,408.0,314.5,70.045,,509.0,,N,S2;C1,"High water cut, Low DP choke, need test at higher choke"
+SY00641,SY - 0064 - TB,SIMSIMA R1,TB,400.0,400.0,236.0,44.208,,1259.0,50.0,N,S1;S3,Limit production to get pwf above Pb
+SY00651,SY - 0065 - TB,SIMSIMA R1,TB,880.0,880.0,847.24,46.878,,610.0,50.0,N,C1,Low DP across choke. Need testing at higher choke
+SY00661,SY - 0066 - TB,SIMSIMA R1,TB,530.0,530.0,554.64,13.12,,780.4262335999999,50.0,N,S1;C1,Low DP across choke
+SY00671,SY - 0067 - TB,SIMSIMA R1,TB,340.0,340.0,370.98,68.893,,880.7082494,50.0,N,S2;C1,Test the well to check the well potential
+SY00681,SY - 0068 - TB,SIMSIMA R1,TB,520.0,520.0,579.76,36.242,,630.0,50.0,N,S1;S2,Test the well to check the well potential
+SY00691,SY - 0069 - TB,SIMSIMA R1,TB,90.0,90.0,84.76,32.43,,640.5450000000001,,N,S1,Test the well to check the well potential after stimulation
+SY00701,SY - 0070 - TB,SIMSIMA R1,TB,350.0,350.0,273.65,34.415,,672.0,43.0,N,S1,"Low PIP, stimulation required"
+SY00731,SY - 0073 - TB,SIMSIMA R2,TB,1200.0,1200.0,1305.62,69.754,,895.325021376,60.0,N,S2;C2,Test the well to check the well potential
+SY00741,SY - 0074 - TB,SIMSIMA R1,TB,120.0,120.0,83.68,41.343,,966.0,,N,S1,Stimulation required
+SY00751,SY - 0075 - TB,SIMSIMA R2,TB,1580.0,1580.0,1423.28,56.387,,912.2299794879999,50.0,N,S2,Test the well to check the well potential
+SY00761,SY - 0076 - TB,SIMSIMA R2,TB,400.0,400.0,465.84,85.286,,958.1730421220001,52.0,N,S2,MRT Rrequired
+SY00771,SY - 0077 - TB,SIMSIMA R2,TB,980.0,980.0,1007.56,68.055,,1116.746748648,54.0,N,S2,High water cut
+SY00781,SY - 0078 - TB,SIMSIMA R2,TB,880.0,880.0,879.48,71.064,,638.2991324736,60.0,N,S2;C2,Test the well to check the well potential
+SY00791,SY - 0079 - TB,SIMSIMA R2,TB,454.0,454.0,435.04,86.732,,1202.9018955956,55.0,N,S2,High water cut
+SY00801,SY - 0080 - TB,SIMSIMA R1,TB,362.4,400.0,467.92,55.583,,859.72007916,46.0,N,S1;S2,wc increase
+SY00811,SY - 0081 - TB,SIMSIMA R1,TB,564.22,650.0,538.2,25.663,,628.3300861248,50.0,N,S1,Test higher rate
+SY00821,SY - 0082 - TB,SIMSIMA R2,TB,780.0,780.0,942.42,71.754,,775.0671957167999,55.0,N,S2,wc increase
+SY00851,SY - 0085 - TB,SIMSIMA R1,TB,500.0,500.0,499.96,28.963,,570.0,50.0,N,S1;S3,Limit production to get pwf above Pb
+SY00861,SY - 0086 - TB,SIMSIMA R2,TB,0.0,0.0,,65.249,,772.1051867379999,55.0,N,S2,flowing only water.  RM requested to S/D and conduct PLT when possible
+SY00871,SY - 0087 - TB,SIMSIMA R2,TB,780.0,780.0,908.36,70.024,,939.6314696544,50.0,N,S2;C2,Test the well at higher freq/choke
+SY00881,SY - 0088 - TB,SIMSIMA R2,TB,1500.0,1500.0,619.24,46.351,,754.8991891008,60.0,N,S2;C2,MRT at higher freq
+SY00891,SY - 0089 - TB,SIMSIMA R2,TB,320.0,320.0,96.18,94.215,,1122.0,43.0,N,S2,"High water cut, planned for chemical WSO"
+SY00901,SY - 0090 - TB,SIMSIMA R2,TB,700.0,750.0,537.3,57.609,,557.8081932800001,52.0,N,,"AICV completion, PLT planned"
+SY00911,SY - 0091 - TB,SIMSIMA R2,TB,0.0,0.0,119.36,93.257,,1328.25991232,49.0,Disconnected,S2,High water cut
+SY00921,SY - 0092 - TB,SIMSIMA R2,TB,1500.0,1500.0,1416.84,60.053,,1234.236454752,54.46,N,S2;C2,Test the well at higher freq >57 Hz
+SY00931,SY - 0093 - TB,SIMSIMA R1,TB,300.0,400.0,476.88,26.602,,520.6736693600001,48.0,Y,S4,Well available from May onwards
+SY00941,SY - 0094 - TB,SIMSIMA R2,TB,1210.0,1600.0,1132.52,77.82,,1400.72273824,52.0,N,S2,"wc increase, flowing at high liq 5100 bpd at 52 Hz"
+SY00951,SY - 0095 - TB,SIMSIMA R2,TB,1500.0,1500.0,1319.08,50.885,,829.0,50.0,N,S2,wc increase
+SY00961,SY - 0096 - TB,SIMSIMA R1,TB,80.0,80.0,63.24,70.349,,521.0191354,,N,S1;S2,"AICV well , require investigation"
+SY00971,SY - 0097 - TB,SIMSIMA R2,TB,700.0,700.0,,,,,,Y,S4,"New OP, TR to update after commissioning"
+SY00981,SY - 0098 - TB,SIMSIMA R2,TB,0.0,0.0,759.28,71.707,,845.0577496,57.0,Y,S4;S2,"well flowing but no data at MPFM, test the well at WH using Testing package"
+SY00991,SY - 0099 - TB,SIMSIMA R2,TB,1150.0,1150.0,1190.62,68.841,,1052.79902048,60.0,N,S2;C2,wc increase to 69% as of Nov-2025
+SY01001,SY - 0100 - TB,SIMSIMA R2,TB,1350.0,1350.0,1458.8,49.79,,865.6394936,60.0,N,C2,Little oil decrease & water increase
+SY01011,SY - 0101 - TB,SIMSIMA R2,TB,1100.0,1100.0,922.92,68.6,,1055.0242,45.0,N,S2,wc increase
+SY01021,SY - 0102 - TB,SIMSIMA R2,TB,780.0,780.0,690.04,65.367,,590.0,55.0,N,S2,High water cut. Candidiate for Shifting tool with SLB ( ongoing evlation)
+SY01031,SY - 0103 - TB,SIMSIMA R2,TB,1650.0,1650.0,1746.5,38.049,,1022.7052349200001,49.0,N,,Little oil increase & water decrease
+SY01041,SY - 0104 - TB,SIMSIMA R2,TB,0.0,0.0,430.8,84.687,,1445.0,53.0,N,S2;C2,Test the well at higher Freq/choke
+SY01051,SY - 0105 - TB,SIMSIMA R2,TB,1530.0,1530.0,1560.8,49.946,,817.57395552,59.0,N,S2;C2,Test the well to check the well potential
+SY01071,SY - 0107 - TB,SIMSIMA R1,TB,370.0,370.0,386.34,60.293,,985.8960016,,,S2;C2,Test the well at higher Freq
+SY01081,SY - 0108 - TB,SIMSIMA R1,TB,300.0,300.0,472.96,27.371,,529.0,46.0,N,S1;S3,Limit production to get pwf above Pb
+SY01101,SY - 0110 - TB,SIMSIMA R1,TB,260.0,300.0,293.0,27.114,,725.951496,42.0,N,S1;C2,test at higher freq
+SY01111,SY - 0111 - TB,SIMSIMA R1,TB,424.0,450.0,643.02,21.823,,598.0,55.0,N,S1,the well was stimulated (Naphtha + HCL)
+SY01121,SY - 0112 - TB,SIMSIMA R1,TB,600.0,600.0,688.16,15.766,,503.0,,N,S1,Low intake
+SY01131,SY - 0113 - TB,SIMSIMA R1,TB,877.16,900.0,882.58,26.367,,679.74811936,75.0,N,S1;S2;C2,ESP running at max. Frequency
+SY01141,SY - 0114 - TB,SIMSIMA R1,TB,700.0,700.0,763.8,38.567,,519.70061104,55.0,N,S2,wc increase
+SY01151,SY - 0115 - TB,SIMSIMA R1,TB,0.0,0.0,512.0,12.027,,567.0,44.0,N,S1,Low PIP
+SY01161,SY - 0116 - TB,SIMSIMA R1,TB,700.0,700.0,677.48,64.281,,875.6438811200001,54.9,N,S2,MRT required
+SY01171,SY - 0117 - TB,SIMSIMA R1,TB,0.0,460.0,494.0,14.945,,515.0,48.0,Y,S4;S1,Well available from Jun onwards
+SY01181,SY - 0118 - TB,SIMSIMA R1,TB,750.0,750.0,,,,,,N,,"New OP, TR to update after commissioning"
+SY01191,SY - 0119 - TB,SIMSIMA R1,TB,1264.0,1300.0,1222.1,19.122,,600.24070352,52.0,N,S1;S2,Low PIP
+SY01201,SY - 0120 - TB,SIMSIMA R1,TB,350.0,350.0,789.96,2.116,,663.0,47.43,N,S1;S3,Limit production to get pwf above Pb
+SY01211,SY - 0121 - TB,SIMSIMA R2,TB,1200.0,1200.0,1079.0,59.5,,,45.0,N,C2,test at higher freq > 45 Hz
+SY01221,SY - 0122 - TB,SIMSIMA R2,TB,320.0,320.0,,,,665.0,,N,S1,"Low PIP, PLT required"
+SY01231,SY - 0123 - TB,SIMSIMA R2,TB,50.0,50.0,32.04,91.789,,810.4460544,44.0,N,S2,Evaluate a sidetrack
+SY01241,SY - 0124 - TB,SIMSIMA R2,TB,1050.0,1050.0,1079.82,61.5,,845.0,55.24,N,S2,wc increase
+SY01271,SY - 0127 - TB,SIMSIMA R1,TB,395.66,500.0,378.16,48.981,,860.65952032,46.0,N,S2,wc increase
+SY01281,SY - 0128 - TB,SIMSIMA R1,TB,500.0,500.0,468.82,42.576,,605.17641888,45.0,N,S2,"Low ESP-PIP, wc increase"
+SY01291,SY - 0129 - TB,SIMSIMA R1,TB,50.0,50.0,15.82,61.546,,975.0,40.0,N,S1;S2,"Low PIP, low productive well, eavluate WO for wellperforation or Re-entry"
+SY01301,SY - 0130 - TB,SIMSIMA R1,TB,400.0,400.0,385.88,57.624,,545.60756,53.0,N,S1,Low PIP
+SY01311,SY - 0131 - TB,SIMSIMA R1,TB,270.0,270.0,277.2,19.297,,563.6219494,43.0,N,S1,Low PIP and BHFP
+SY01321,SY - 0132 - TB,SIMSIMA R1,TB,550.0,550.0,1001.14,10.523,,635.0,59.83,N,S1;S3;C2,Limit production to get pwf above Pb
+SY01331,SY - 0133 - TB,SIMSIMA R1,TB,100.0,100.0,42.0,62.832,,586.49047056,40.0,N,S1;S2,"Low PIP, low productive well"
+SY01341,SY - 0134 - TB,SIMSIMA R2,TB,511.0,511.0,528.0,79.405,,1076.0,59.0,N,S2;C2,High water cut
+SY01351,SY - 0135 - TB,SIMSIMA R1,TB,200.0,200.0,387.88,50.966,,502.0,53.8,N,S1;S2;S3,Limit production to get pwf above Pb
+SY01501,SY - 0150 - TB,SIMSIMA R2,TB,1650.0,1650.0,1707.56,9.357,,1038.9075264,47.0,N,,water increase
+SY01511,SY - 0151 - TB,SIMSIMA R2,TB,1650.0,1650.0,1737.84,5.41,,1189.0,51.0,N,,slight water decrease
+SY01521,SY - 0152 - TB,SIMSIMA R1,TB,850.0,850.0,,,,711.0,,N,,
+SY01531,SY - 0153 - TB,SIMSIMA R1,TB,780.0,800.0,727.24,15.287,,598.0,50.0,N,,BHFP surevy required
+SY01541,SY - 0154 - TB,SIMSIMA R1,TB,920.42,1100.0,1011.0,27.546,,867.0,60.0,N,S2;C2,"good intake pressure, wc increase"
+SY01571,SY - 0157 - TB,SIMSIMA R2,TB,220.0,220.0,215.72,89.859,,916.6,49.0,N,S2,Rapid water cut increase and high wc
+SY01581,SY - 0158 - TB,SIMSIMA R2,,1450.0,1600.0,1423.72,14.259,,986.0,39.0,N,S2,"water cut increase, recommend to reduce offtake and conduct MRT"
+SY01591,SY - 0159 - TB,SIMSIMA R1,TB,400.0,400.0,435.0,60.916,,598.78,50.0,N,S1;S2,"New PK04 well, not well improved after stimulation"
+SY01601,SY - 0160 - TB,SIMSIMA R2,TB,950.0,950.0,658.06,64.382,,985.6,48.0,N,S2,water cut increase
+SY01611,SY - 0161 - TB,SIMSIMA R1,TB,180.0,180.0,105.32,35.418,,825.0,52.0,N,S1,"PK02 well ,require another stimulation"
+SY01621,SY - 0162 - TB,SIMSIMA R1,TB,400.0,400.0,354.0,55.915,,630.0,45.0,N,S1,"PK04 well  ,imporved after stimulation"
+SY01631,SY - 0163 - TB,SIMSIMA R2,TB,1350.0,1350.0,1129.58,26.773,,1211.0,44.0,N,,PLT plan
+SY01641,SY - 0164 - TB,SIMSIMA R2,TB,1000.0,1000.0,1340.0,31.633,,1009.0,44.0,N,,"water cut increase, PLT plan"
+SY01661,SY - 0166 - TB,SIMSIMA R2,TB,0.0,150.0,151.84,89.892,,669.0,49.0,N,S1;S2;C2,"High water cut, Test at higher freq"
+SY01731,SY - 0173 - TB,SIMSIMA R3,TB,1000.0,1000.0,1437.12,21.293,,632.0,57.0,N,,"water cut increase, plan PLT and conduct MRT"
+SY01741,SY - 0174 - TB,SIMSIMA R1,TB,260.0,260.0,228.0,53.374,,517.6,48.0,N,S1;S2,"PK04 well , naphtha stimulation completed and the production enhanced. Wc increase"
+SY01781,SY - 0178 - TB,SIMSIMA R1,TB,300.0,340.0,,20.0,,1225.0,,N,S1,No test data and requires to be tested
+SY01891,SY - 0189 - TB,SIMSIMA R1,TB,700.0,750.0,,34.0,,,,N,,low BHFP close to the GL
+SY01891,SY - 0194 - TB,SIMSIMA R2,TB,1400.0,1600.0,713.0,62.0,,,,N,S2,New OP

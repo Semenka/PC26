@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PC26 1.1D · Shah De-Bottlenecking Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#0c0d10; --panel:#13161c; --panel2:#181c24; --line:#1f242e;
+  --text:#e8eaee; --sub:#8b94a3; --dim:#5b6577;
+  --oil:#f59e0b; --navy:#0a2540; --teal:#0891b2; --mint:#34d399;
+  --water:#06b6d4; --ok:#16a34a; --warn:#f59e0b; --bad:#dc2626;
+}
+* { box-sizing: border-box; }
+html,body { background:var(--bg); color:var(--text); margin:0; padding:0;
+  font-family:"IBM Plex Sans", -apple-system, system-ui, sans-serif; font-size:14px; }
+header { position:sticky; top:0; z-index:50; padding:18px 28px;
+  background:linear-gradient(180deg,#0a2540 0%, #0c0d10 100%);
+  border-bottom:2px solid var(--oil); }
+header h1 { margin:0; font-family:"Fraunces", Georgia, serif; font-size:22px; font-weight:700;
+  letter-spacing:.2px; }
+header .sub { color:var(--sub); font-size:12px; margin-top:4px;
+  font-family:"JetBrains Mono", monospace; }
+nav { display:flex; gap:2px; padding:0 16px; background:var(--panel);
+  overflow-x:auto; border-bottom:1px solid var(--line); position:sticky; top:74px; z-index:40; }
+nav button { background:transparent; color:var(--sub); border:none;
+  padding:14px 20px; font-size:13px; cursor:pointer; border-bottom:3px solid transparent;
+  font-family:inherit; letter-spacing:.3px; text-transform:uppercase; font-weight:500; }
+nav button.active { color:var(--oil); border-bottom-color:var(--oil); }
+nav button:hover { color:var(--text); }
+main { padding:22px 28px; max-width:1500px; margin:0 auto; }
+.tab { display:none; } .tab.active { display:block; }
+.kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+.kpi { background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--oil);
+  padding:16px 18px; border-radius:6px; }
+.kpi .lbl { font-size:11px; color:var(--sub); letter-spacing:.6px;
+  text-transform:uppercase; font-family:"JetBrains Mono", monospace; }
+.kpi .val { font-family:"JetBrains Mono", monospace; font-size:28px; font-weight:700;
+  color:var(--text); margin-top:6px; line-height:1; }
+.kpi .unit { font-size:13px; color:var(--sub); margin-left:6px; font-weight:500; }
+.kpi.teal { border-left-color:var(--teal); }
+.kpi.mint { border-left-color:var(--mint); }
+.kpi.bad  { border-left-color:var(--bad);  }
+.grid { display:grid; gap:16px; }
+.grid.two { grid-template-columns:1fr 1fr; }
+.grid.three { grid-template-columns:repeat(3,1fr); }
+@media (max-width:900px) { .grid.two,.grid.three { grid-template-columns:1fr; } .kpis { grid-template-columns:repeat(2,1fr); } }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:6px;
+  padding:18px 20px; margin-bottom:16px; }
+.card h2 { margin:0 0 14px 0; font-family:"Fraunces", Georgia, serif; font-size:18px;
+  color:var(--text); font-weight:600; letter-spacing:.2px; }
+.card h2 .tag { font-family:"JetBrains Mono", monospace; font-size:11px; color:var(--oil);
+  background:rgba(245,158,11,.1); padding:3px 8px; border-radius:3px; margin-left:8px;
+  letter-spacing:.5px; text-transform:uppercase; }
+.card .note { color:var(--sub); font-size:12px; margin-top:6px;
+  font-style:italic; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { color:var(--sub); font-weight:500; text-align:left; padding:10px 8px;
+  border-bottom:1px solid var(--line); font-size:11px; letter-spacing:.6px;
+  text-transform:uppercase; cursor:pointer; user-select:none;
+  font-family:"JetBrains Mono", monospace; background:var(--panel2); }
+th:hover { color:var(--oil); }
+td { padding:9px 8px; border-bottom:1px solid var(--line); }
+tr:hover td { background:rgba(255,255,255,.02); }
+.bar-cell { position:relative; min-width:140px; }
+.bar { height:14px; background:linear-gradient(90deg,var(--oil),#d97706); border-radius:2px;
+  display:inline-block; vertical-align:middle; }
+.bar-num { font-family:"JetBrains Mono", monospace; font-size:12px; color:var(--text); margin-left:8px; }
+.chip { display:inline-block; padding:2px 8px; border-radius:3px; font-size:11px;
+  font-family:"JetBrains Mono", monospace; margin:2px 3px 2px 0; letter-spacing:.4px; }
+.chip.S1 { background:rgba(52,211,153,.15); color:var(--mint); }
+.chip.S2 { background:rgba(6,182,212,.15);  color:var(--water); }
+.chip.S3 { background:rgba(245,158,11,.15); color:var(--oil); }
+.chip.S4 { background:rgba(220,38,38,.15);  color:var(--bad); }
+.chip.S5 { background:rgba(8,145,178,.15);  color:var(--teal); }
+.chip.C1 { background:rgba(30,58,95,.5);    color:#93c5fd; }
+.chip.C2 { background:rgba(15,23,42,.7);    color:#cbd5e1; }
+.chip.C3 { background:rgba(245,158,11,.2);  color:var(--oil); }
+.chip.conf-H  { background:rgba(22,163,74,.2);  color:var(--ok); }
+.chip.conf-MH { background:rgba(8,145,178,.2);  color:var(--teal); }
+.chip.conf-M  { background:rgba(245,158,11,.2); color:var(--oil); }
+.opp-card { background:var(--panel2); border:1px solid var(--line); border-radius:6px;
+  margin-bottom:12px; overflow:hidden; }
+.opp-head { padding:14px 18px; cursor:pointer; display:flex; align-items:center; gap:14px;
+  background:linear-gradient(90deg,var(--panel2),var(--panel)); }
+.opp-head:hover { background:var(--panel); }
+.opp-head .rank { font-family:"JetBrains Mono", monospace; font-size:20px; color:var(--oil);
+  font-weight:700; width:34px; text-align:center; }
+.opp-head .id { font-family:"JetBrains Mono", monospace; font-size:12px; color:var(--sub);
+  background:rgba(245,158,11,.1); padding:3px 8px; border-radius:3px; }
+.opp-head .title { flex:1; font-family:"Fraunces", Georgia, serif; font-size:16px;
+  color:var(--text); }
+.opp-head .gain { font-family:"JetBrains Mono", monospace; font-size:16px; color:var(--mint);
+  font-weight:700; }
+.opp-head .arrow { color:var(--sub); transition:transform .2s; }
+.opp-card.open .arrow { transform:rotate(90deg); }
+.opp-body { display:none; padding:18px 22px; background:var(--panel); border-top:1px solid var(--line); }
+.opp-card.open .opp-body { display:block; }
+.opp-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px; }
+.opp-stat { background:var(--bg); border:1px solid var(--line); padding:12px; border-radius:4px; }
+.opp-stat .lbl { color:var(--sub); font-size:11px; letter-spacing:.5px;
+  font-family:"JetBrains Mono", monospace; text-transform:uppercase; }
+.opp-stat .val { font-family:"JetBrains Mono", monospace; color:var(--text);
+  font-size:18px; font-weight:600; margin-top:4px; }
+.opp-section { margin-top:10px; }
+.opp-section h4 { font-family:"JetBrains Mono", monospace; font-size:11px;
+  color:var(--oil); letter-spacing:.7px; text-transform:uppercase; margin:0 0 6px 0; }
+.opp-section p { margin:0; color:var(--text); font-size:13px; line-height:1.55; }
+.opp-section .prereq { color:var(--sub); font-style:italic; }
+.gain-range { background:var(--bg); height:18px; border-radius:2px; position:relative;
+  border:1px solid var(--line); margin-top:8px; }
+.gain-range .fill {
+  position:absolute; height:100%;
+  background:linear-gradient(90deg,rgba(52,211,153,.3),var(--mint));
+  border-radius:2px; }
+.gain-range .full {
+  position:absolute; height:100%;
+  background:repeating-linear-gradient(45deg,
+    rgba(245,158,11,.1) 0 6px, rgba(245,158,11,.25) 6px 12px);
+  border-radius:2px;
+  border-left:1px dashed var(--oil); border-right:1px dashed var(--oil); }
+.filter-bar { display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
+.filter-bar input, .filter-bar select { background:var(--panel2); color:var(--text);
+  border:1px solid var(--line); padding:8px 12px; border-radius:4px; font-family:inherit;
+  font-size:13px; }
+.filter-bar input { width:240px; }
+.filter-bar .lbl { color:var(--sub); font-size:11px; letter-spacing:.5px;
+  font-family:"JetBrains Mono", monospace; text-transform:uppercase; }
+.wells-table { max-height:600px; overflow:auto; border:1px solid var(--line);
+  border-radius:4px; }
+.wells-table th { position:sticky; top:0; }
+.gap-row { display:flex; gap:14px; padding:14px 18px; background:var(--panel2);
+  border-radius:6px; margin-bottom:10px; align-items:flex-start;
+  border-left:3px solid var(--oil); }
+.gap-row .num { font-family:"JetBrains Mono", monospace; font-size:20px; color:var(--oil);
+  font-weight:700; width:34px; }
+.gap-row .body h4 { margin:0 0 4px 0; color:var(--text); font-size:14px; font-weight:600; }
+.gap-row .body p { margin:0; color:var(--sub); font-size:12px; }
+.canvas-wrap { position:relative; height:340px; }
+.canvas-wrap.tall { height:480px; }
+.sankey-svg { width:100%; height:520px; background:var(--bg); border:1px solid var(--line);
+  border-radius:4px; }
+.legend { display:flex; gap:14px; margin-top:10px; flex-wrap:wrap; font-size:11px;
+  color:var(--sub); font-family:"JetBrains Mono", monospace; }
+.legend .dot { display:inline-block; width:10px; height:10px; border-radius:2px;
+  margin-right:5px; vertical-align:middle; }
+.caveat { background:rgba(245,158,11,.08); border-left:3px solid var(--oil);
+  padding:10px 14px; margin:10px 0; font-size:12px; color:var(--text); border-radius:3px; }
+.caveat b { color:var(--oil); font-family:"JetBrains Mono", monospace; font-size:11px;
+  letter-spacing:.5px; text-transform:uppercase; }
+footer { padding:20px 28px; border-top:1px solid var(--line); color:var(--dim);
+  font-size:11px; font-family:"JetBrains Mono", monospace; margin-top:30px;
+  text-align:center; letter-spacing:.5px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Shah Field De-Bottlenecking Dashboard <span style="color:var(--oil);font-family:'JetBrains Mono',monospace;font-size:13px;margin-left:10px;">PC26 · OBJ 1.1D</span></h1>
+  <div class="sub">TotalEnergies ALSG × ADNOC Onshore  ·  Issued 2026-04-23  ·  Asset Lead FP: Andrey Semenov  ·  124 producer strings + 9 WI strings</div>
+</header>
+<nav>
+  <button class="active" data-tab="overview">Overview</button>
+  <button data-tab="map">Bottleneck Map</button>
+  <button data-tab="opps">Opportunities</button>
+  <button data-tab="wells">Wells</button>
+  <button data-tab="gaps">Data Gaps</button>
+</nav>
+<main>
+
+<!-- ============== OVERVIEW ============== -->
+<section id="overview" class="tab active">
+  <div class="kpis">
+    <div class="kpi"><div class="lbl">Current actual (FAR)</div><div class="val">75,733<span class="unit">BOPD</span></div></div>
+    <div class="kpi teal"><div class="lbl">2026 realistic uplift</div><div class="val">10–12k<span class="unit">BOPD</span></div></div>
+    <div class="kpi mint"><div class="lbl">De-bottlenecking opps.</div><div class="val">8</div></div>
+    <div class="kpi bad"><div class="lbl">Critical data gaps</div><div class="val">9</div></div>
+  </div>
+
+  <div class="grid two">
+    <div class="card">
+      <h2>Field Baseline <span class="tag">Q2-2026 Allowable</span></h2>
+      <div class="canvas-wrap"><canvas id="cBaseline"></canvas></div>
+      <p class="note">Allowable 76,671 BOPD active · TR 79,983 BOPD · FAR 75,733 BOPD · Gap vs TR = 4,250 BOPD (5.6 %)</p>
+    </div>
+    <div class="card">
+      <h2>Bottleneck Categories <span class="tag">RM-comment classified</span></h2>
+      <table id="bnTable">
+        <thead><tr><th>ID</th><th>Category</th><th>Type</th><th>Wells</th><th>BOPD lost</th><th>Link</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>8 De-Bottlenecking Opportunities — ranked by 2026 realistic gain <span class="tag">low end of range</span></h2>
+    <div class="canvas-wrap tall"><canvas id="cOpps"></canvas></div>
+    <div class="legend">
+      <span><span class="dot" style="background:var(--mint)"></span>2026 realistic gain (low)</span>
+      <span><span class="dot" style="background:rgba(245,158,11,.4)"></span>Uplift to full potential</span>
+    </div>
+  </div>
+
+  <div class="caveat"><b>Note</b> &nbsp;§4.7 Surface back-pressure estimates pending Jan-2026 FCT report. All gain ranges reproduce the §ANALYSIS BLOCK quantification; per-well classification (Wells tab) is a fresh regex pass on the RM comment column for audit.</div>
+</section>
+
+<!-- ============== BOTTLENECK MAP ============== -->
+<section id="map" class="tab">
+  <div class="card">
+    <h2>Production Flow Map <span class="tag">75,733 → 87,000 BOPD potential</span></h2>
+    <svg id="sankey" class="sankey-svg" viewBox="0 0 1200 520" preserveAspectRatio="xMidYMid meet"></svg>
+    <p class="note">Left band: current production. Wedges show each opportunity's 2026 realistic gain contribution (overlap deduction applied to §4.1/§4.3/§4.4 = ×0.75). Right band: post-debottleneck envelope.</p>
+  </div>
+
+  <div class="grid two">
+    <div class="card">
+      <h2>BOPD lost by bottleneck category</h2>
+      <div class="canvas-wrap"><canvas id="cBnLoss"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Wells affected by category</h2>
+      <div class="canvas-wrap"><canvas id="cBnCount"></canvas></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== OPPORTUNITIES ============== -->
+<section id="opps" class="tab">
+  <div class="card">
+    <h2>Opportunity Deep-Dives <span class="tag">click to expand</span></h2>
+    <div id="oppList"></div>
+  </div>
+</section>
+
+<!-- ============== WELLS ============== -->
+<section id="wells" class="tab">
+  <div class="card">
+    <h2>All Producer Strings <span class="tag">124 strings · regex-tagged from RM comments</span></h2>
+    <div class="filter-bar">
+      <span class="lbl">Filter:</span>
+      <input id="wellSearch" type="text" placeholder="CMPL / UWI / reservoir / RM text...">
+      <span class="lbl">Category:</span>
+      <select id="catFilter">
+        <option value="">All categories</option>
+        <option value="S1">S1 — Low PIP / stim</option>
+        <option value="S2">S2 — High water cut</option>
+        <option value="S3">S3 — Low BHFP / Pb risk</option>
+        <option value="S4">S4 — Inactive</option>
+        <option value="S5">S5 — Reservoir depletion</option>
+        <option value="C1">C1 — Low DP / VSD</option>
+        <option value="C2">C2 — ESP max freq</option>
+        <option value="C3">C3 — Back-pressure proxy</option>
+      </select>
+      <span class="lbl">Reservoir:</span>
+      <select id="resFilter">
+        <option value="">All</option>
+        <option value="SIMSIMA R1">R1</option>
+        <option value="SIMSIMA R2">R2</option>
+        <option value="SIMSIMA R3">R3</option>
+      </select>
+      <span style="margin-left:auto;color:var(--sub);font-size:12px;font-family:'JetBrains Mono',monospace;"
+        id="wellCount"></span>
+    </div>
+    <div class="wells-table">
+      <table id="wTable">
+        <thead><tr>
+          <th data-sort="cmpl">CMPL</th>
+          <th data-sort="res">Reservoir</th>
+          <th data-sort="alw">Alw</th>
+          <th data-sort="tr">TR</th>
+          <th data-sort="qo">Qo</th>
+          <th data-sort="wc">WC%</th>
+          <th data-sort="pi">PI</th>
+          <th data-sort="bhfp">BHFP</th>
+          <th data-sort="freq">Freq</th>
+          <th data-sort="inact">Inact</th>
+          <th>Cats</th>
+          <th>RM Comment</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Water-Injection Strings <span class="tag">9 WI wells</span></h2>
+    <table id="wiTable">
+      <thead><tr><th>Well</th><th>Reservoir</th><th>Alw w/ 175+180</th><th>Max w/o</th><th>TR</th><th>Actual</th><th>WHIP</th><th>RM</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============== DATA GAPS ============== -->
+<section id="gaps" class="tab">
+  <div class="card">
+    <h2>Critical Data Gaps <span class="tag">ranked by impact-on-deliverable</span></h2>
+    <div id="gapList"></div>
+  </div>
+  <div class="caveat"><b>Request</b> &nbsp;Items 1 and 2 (Jan-2026 FCT report and GAP/Prosper IPM model) are the single most consequential — without them, surface bottleneck quantification (§4.7) cannot move past estimate and remains the largest tractable upside.</div>
+</section>
+
+</main>
+
+<footer>
+PC26 — Objective 1.1D — Shah Field De-Bottlenecking · Built 2026-05-19 ·
+Chart.js 4.4.0 · IBM Plex Sans / Fraunces / JetBrains Mono · Single-file offline build
+</footer>
+
+<script>
+const WELLS = [{"cmpl":"SY00011","uwi":"SY - 0001 - TB","res":"SIMSIMA R2","string":"TB","alw":90.0,"tr":90.0,"qo":75.7,"wc":95.679,"pi":null,"bhfp":1061.0,"freq":50.0,"inact":"N","cats":["S2"],"rm":"High water cut ,WO for production enhancement (squeeze perfos and new perforations)"},{"cmpl":"SY00041","uwi":"SY - 0004 - TB","res":"SIMSIMA R1","string":"TB","alw":980.0,"tr":1000.0,"qo":1014.24,"wc":50.029,"pi":null,"bhfp":739.2480838015999,"freq":50.0,"inact":"N","cats":["S1","C1"],"rm":"Test the well to check the well potential"},{"cmpl":"SY00111","uwi":"SY - 0011 - TB","res":"SIMSIMA R2","string":"TB","alw":120.0,"tr":120.0,"qo":163.78,"wc":87.225,"pi":null,"bhfp":1444.0,"freq":null,"inact":"N","cats":["S2"],"rm":"High water cut"},{"cmpl":"SY00121","uwi":"SY - 0012 - TB","res":"SIMSIMA R1","string":"TB","alw":1300.0,"tr":1500.0,"qo":1193.0,"wc":57.9,"pi":null,"bhfp":1127.5148994607998,"freq":50.0,"inact":"N","cats":[],"rm":"MRT required to check well potential"},{"cmpl":"SY00141","uwi":"SY - 0014 - TB","res":"SIMSIMA R1","string":"TB","alw":650.0,"tr":670.0,"qo":599.7,"wc":38.876,"pi":null,"bhfp":573.0,"freq":50.0,"inact":"N","cats":["S1","C1"],"rm":"Low PIP, Low DP across choke"},{"cmpl":"SY00151","uwi":"SY - 0015 - TB","res":"SIMSIMA R2","string":"TB","alw":300.0,"tr":340.0,"qo":316.36,"wc":86.656,"pi":null,"bhfp":966.8804012287999,"freq":50.0,"inact":"N","cats":["S2","C1"],"rm":"High water cut , Low DP across choke"},{"cmpl":"SY00191","uwi":"SY - 0019 - TB","res":"SIMSIMA R1","string":"TB","alw":500.0,"tr":530.0,"qo":432.0,"wc":40.984,"pi":null,"bhfp":690.0,"freq":null,"inact":"N","cats":[],"rm":"Well Equipped with PWS-VSD"},{"cmpl":"SY00201","uwi":"SY - 0020 - TB","res":"SIMSIMA R2","string":"TB","alw":0.0,"tr":0.0,"qo":456.27,"wc":90.362,"pi":null,"bhfp":857.7414122419999,"freq":null,"inact":"Y","cats":["S4","S2","C1"],"rm":"High water cut , Low DP across choke"},{"cmpl":"SY00211","uwi":"SY - 0021 - TB","res":"SIMSIMA R1","string":"TB","alw":300.0,"tr":300.0,"qo":100.2,"wc":76.565,"pi":null,"bhfp":672.4611762,"freq":50.0,"inact":"N","cats":["S1","S2"],"rm":"Low PIP. Test the well to check the well potential"},{"cmpl":"SY00221","uwi":"SY - 0022 - TB","res":"SIMSIMA R1","string":"TB","alw":300.0,"tr":400.0,"qo":443.24,"wc":49.022,"pi":null,"bhfp":506.0,"freq":50.0,"inact":"N","cats":["S1","C1"],"rm":"Test the well to check the well potential"},{"cmpl":"SY00241","uwi":"SY - 0024 - TB","res":"SIMSIMA R1","string":"TB","alw":470.0,"tr":470.0,"qo":null,"wc":null,"pi":null,"bhfp":1350.4342165612002,"freq":null,"inact":"N","cats":["S2","S5"],"rm":"High water cut , propose to reduce it to improve sector VRR in case SY-175 and SY-180 start injection in Q2-26"},{"cmpl":"SY00251","uwi":"SY - 0025 - TB","res":"SIMSIMA R2","string":"TB","alw":0.0,"tr":270.0,"qo":272.84,"wc":94.005,"pi":null,"bhfp":1239.0,"freq":50.0,"inact":"N","cats":["S2"],"rm":"High water cut.Meanwhile shut-in them in case required for water mangement"},{"cmpl":"SY00261","uwi":"SY - 0026 - TB","res":"SIMSIMA R2","string":"TB","alw":770.0,"tr":800.0,"qo":752.32,"wc":76.156,"pi":null,"bhfp":1370.0,"freq":50.0,"inact":"N","cats":["S2"],"rm":"Well Equipped with PWS-VSD"},{"cmpl":"SY00271","uwi":"SY - 0027 - TB","res":"SIMSIMA R1","string":"TB","alw":850.0,"tr":850.0,"qo":820.94,"wc":37.753,"pi":null,"bhfp":629.0,"freq":50.0,"inact":"N","cats":["S1"],"rm":"Test the well to check the well potential"},{"cmpl":"SY00321","uwi":"SY - 0032 - TB","res":"SIMSIMA R1","string":"TB","alw":0.0,"tr":0.0,"qo":51.74,"wc":95.517,"pi":null,"bhfp":null,"freq":null,"inact":"Disconnected","cats":["S2"],"rm":"Test the well to check the well potential"},{"cmpl":"SY00341","uwi":"SY - 0034 - TB","res":"SIMSIMA R2","string":"TB","alw":0.0,"tr":0.0,"qo":null,"wc":62.318,"pi":null,"bhfp":1215.0,"freq":null,"inact":"N","cats":["S2"],"rm":"ESP failed - WO requires and be available by Jul."},{"cmpl":"SY00351","uwi":"SY - 0035 - TB","res":"SIMSIMA R2","string":"TB","alw":0.0,"tr":0.0,"qo":810.66,"wc":71.92,"pi":null,"bhfp":1467.0,"freq":50.0,"inact":"Y","cats":["S4","S2"],"rm":"VSD PWS replacement done"},{"cmpl":"SY00371","uwi":"SY - 0037 - TB","res":"SIMSIMA R2","string":"TB","alw":650.0,"tr":650.0,"qo":639.84,"wc":76.21,"pi":null,"bhfp":948.0,"freq":50.0,"inact":"N","cats":["S2","C1"],"rm":"High water cut, Low DP choke, need test at higher choke"},{"cmpl":"SY00381","uwi":"SY - 0038 - TB","res":"SIMSIMA R2","string":"TB","alw":300.0,"tr":300.0,"qo":431.44,"wc":79.177,"pi":null,"bhfp":951.9642432408,"freq":50.0,"inact":"N","cats":["S2"],"rm":"High water cut, need test at higher choke"},{"cmpl":"SY00391","uwi":"SY - 0039 - TB","res":"SIMSIMA R1","string":"TB","alw":1400.0,"tr":1500.0,"qo":1044.82,"wc":64.295,"pi":null,"bhfp":1094.4978842704,"freq":50.0,"inact":"N","cats":["S2","C1"],"rm":"Well Equipped with PWS-VSD"},{"cmpl":"SY00401","uwi":"SY - 0040 - TB","res":"SIMSIMA R1","string":"TB","alw":320.0,"tr":600.0,"qo":624.26,"wc":42.056,"pi":null,"bhfp":518.0,"freq":null,"inact":"N","cats":["S1","S3"],"rm":"Limit production to get pwf above Pb"},{"cmpl":"SY00411","uwi":"SY - 0041 - TB","res":"SIMSIMA R2","string":"TB","alw":800.0,"tr":800.0,"qo":null,"wc":null,"pi":null,"bhfp":1058.729185968,"freq":null,"inact":"","cats":[],"rm":""},{"cmpl":"SY00421","uwi":"SY - 0042 - TB","res":"SIMSIMA R1","string":"TB","alw":260.0,"tr":260.0,"qo":250.0,"wc":27.536,"pi":null,"bhfp":795.0,"freq":50.0,"inact":"N","cats":["S1"],"rm":"Test the well to check the well potential"},{"cmpl":"SY00431","uwi":"SY - 0043 - TB","res":"SIMSIMA R1","string":"TB","alw":340.0,"tr":340.0,"qo":331.0,"wc":61.954,"pi":null,"bhfp":null,"freq":50.0,"inact":"N","cats":["S1","S2"],"rm":"High water cut, Further evalation for ST. Meanwhile shut-in them in case required for water mangement"},{"cmpl":"SY00441","uwi":"SY - 0044 - TB","res":"SIMSIMA R1","string":"TB","alw":400.0,"tr":400.0,"qo":401.04,"wc":63.261,"pi":null,"bhfp":875.0,"freq":50.0,"inact":"N","cats":["S2","C1"],"rm":"Test the well to check the well potential.  Llow DP choke could be the constraint, VSD is required"},{"cmpl":"SY00451","uwi":"SY - 0045 - TB","res":"SIMSIMA R1","string":"TB","alw":670.0,"tr":670.0,"qo":668.0,"wc":53.708,"pi":null,"bhfp":1068.0,"freq":50.0,"inact":"N","cats":[],"rm":"Test the well at higher choke  to check the well potential"},{"cmpl":"SY00461","uwi":"SY - 0046 - TB","res":"SIMSIMA R1","string":"TB","alw":1300.0,"tr":1300.0,"qo":1358.0,"wc":57.147,"pi":null,"bhfp":1247.8683677119998,"freq":null,"inact":"N","cats":["C1"],"rm":"Low DP choke, VSD required"},{"cmpl":"SY00481","uwi":"SY - 0048 - TB","res":"SIMSIMA R2","string":"TB","alw":1100.0,"tr":1100.0,"qo":1118.06,"wc":57.669,"pi":null,"bhfp":831.0,"freq":50.0,"inact":"N","cats":["C1"],"rm":"Test the well at higher choke to check the well potential. Low DP choke constraint and requires VSD"},{"cmpl":"SY00491","uwi":"SY - 0049 - TB","res":"SIMSIMA R1","string":"TB","alw":1800.0,"tr":1800.0,"qo":1863.2,"wc":45.683,"pi":null,"bhfp":1160.0,"freq":50.0,"inact":"N","cats":["S2"],"rm":"Test the wellat higher choke  to check the well potential"},{"cmpl":"SY00501","uwi":"SY - 0050 - TB","res":"SIMSIMA R2","string":"TB","alw":900.0,"tr":900.0,"qo":977.04,"wc":69.076,"pi":null,"bhfp":972.9308832,"freq":50.0,"inact":"N","cats":["S2"],"rm":"Test the well at higher choke to check the well potential"},{"cmpl":"SY00511","uwi":"SY - 0051 - TB","res":"SIMSIMA R1","string":"TB","alw":800.0,"tr":800.0,"qo":807.72,"wc":45.81,"pi":null,"bhfp":1046.82460552,"freq":50.0,"inact":"N","cats":["C1"],"rm":"Test the well to check the well potential"},{"cmpl":"SY00541","uwi":"SY - 0054 - TB","res":"SIMSIMA R1","string":"TB","alw":360.0,"tr":360.0,"qo":458.0,"wc":38.16,"pi":null,"bhfp":539.2006065200001,"freq":50.0,"inact":"N","cats":["S1"],"rm":"Low PIP"},{"cmpl":"SY00551","uwi":"SY - 0055 - TB","res":"SIMSIMA R1","string":"TB","alw":300.0,"tr":300.0,"qo":261.54,"wc":49.954,"pi":null,"bhfp":645.0,"freq":50.0,"inact":"N","cats":["S1","S2"],"rm":"Low PIP, WC increase"},{"cmpl":"SY00561","uwi":"SY - 0056 - TB","res":"SIMSIMA R1","string":"TB","alw":null,"tr":0.0,"qo":null,"wc":null,"pi":null,"bhfp":null,"freq":null,"inact":"Observer","cats":["S2"],"rm":"High water cut"},{"cmpl":"SY00571","uwi":"SY - 0057 - TB","res":"SIMSIMA R2","string":"TB","alw":1300.0,"tr":1300.0,"qo":788.16,"wc":63.846,"pi":null,"bhfp":1225.0,"freq":50.0,"inact":"N","cats":["S2","C1"],"rm":"Test the well to check the well potential"},{"cmpl":"SY00581","uwi":"SY - 0058 - TB","res":"SIMSIMA R1","string":"TB","alw":500.0,"tr":550.0,"qo":770.52,"wc":29.567,"pi":null,"bhfp":879.0,"freq":56.0,"inact":"N","cats":["S3"],"rm":"Limit production to get pwf above Pb"},{"cmpl":"SY00591","uwi":"SY - 0059 - TB","res":"SIMSIMA R2","string":"TB","alw":420.0,"tr":420.0,"qo":387.9,"wc":73.62,"pi":null,"bhfp":915.5125402220001,"freq":50.0,"inact":"N","cats":["S2","C1"],"rm":"Low DP across choke, need testing"},{"cmpl":"SY00601","uwi":"SY - 0060 - TB","res":"SIMSIMA R1","string":"TB","alw":220.0,"tr":250.0,"qo":236.96,"wc":18.582,"pi":null,"bhfp":1000.0,"freq":50.0,"inact":"","cats":[],"rm":""},{"cmpl":"SY00611","uwi":"SY - 0061 - TB","res":"SIMSIMA R1","string":"TB","alw":520.0,"tr":520.0,"qo":459.0,"wc":82.53,"pi":null,"bhfp":1196.0,"freq":50.0,"inact":"N","cats":["S2"],"rm":"High water cut, FBHP is required (ESP-PIP is NA)"},{"cmpl":"SY00621","uwi":"SY - 0062 - TB","res":"SIMSIMA R1","string":"TB","alw":240.0,"tr":240.0,"qo":168.0,"wc":60.284,"pi":null,"bhfp":696.0,"freq":50.0,"inact":"N","cats":["S1","S2"],"rm":"Low PIP"},{"cmpl":"SY00631","uwi":"SY - 0063 - TB","res":"SIMSIMA R1","string":"TB","alw":408.42,"tr":408.0,"qo":314.5,"wc":70.045,"pi":null,"bhfp":509.0,"freq":null,"inact":"N","cats":["S2","C1"],"rm":"High water cut, Low DP choke, need test at higher choke"},{"cmpl":"SY00641","uwi":"SY - 0064 - TB","res":"SIMSIMA R1","string":"TB","alw":400.0,"tr":400.0,"qo":236.0,"wc":44.208,"pi":null,"bhfp":1259.0,"freq":50.0,"inact":"N","cats":["S1","S3"],"rm":"Limit production to get pwf above Pb"},{"cmpl":"SY00651","uwi":"SY - 0065 - TB","res":"SIMSIMA R1","string":"TB","alw":880.0,"tr":880.0,"qo":847.24,"wc":46.878,"pi":null,"bhfp":610.0,"freq":50.0,"inact":"N","cats":["C1"],"rm":"Low DP across choke. Need testing at higher choke"},{"cmpl":"SY00661","uwi":"SY - 0066 - TB","res":"SIMSIMA R1","string":"TB","alw":530.0,"tr":530.0,"qo":554.64,"wc":13.12,"pi":null,"bhfp":780.4262335999999,"freq":50.0,"inact":"N","cats":["S1","C1"],"rm":"Low DP across choke"},{"cmpl":"SY00671","uwi":"SY - 0067 - TB","res":"SIMSIMA R1","string":"TB","alw":340.0,"tr":340.0,"qo":370.98,"wc":68.893,"pi":null,"bhfp":880.7082494,"freq":50.0,"inact":"N","cats":["S2","C1"],"rm":"Test the well to check the well potential"},{"cmpl":"SY00681","uwi":"SY - 0068 - TB","res":"SIMSIMA R1","string":"TB","alw":520.0,"tr":520.0,"qo":579.76,"wc":36.242,"pi":null,"bhfp":630.0,"freq":50.0,"inact":"N","cats":["S1","S2"],"rm":"Test the well to check the well potential"},{"cmpl":"SY00691","uwi":"SY - 0069 - TB","res":"SIMSIMA R1","string":"TB","alw":90.0,"tr":90.0,"qo":84.76,"wc":32.43,"pi":null,"bhfp":640.5450000000001,"freq":null,"inact":"N","cats":["S1"],"rm":"Test the well to check the well potential after stimulation"},{"cmpl":"SY00701","uwi":"SY - 0070 - TB","res":"SIMSIMA R1","string":"TB","alw":350.0,"tr":350.0,"qo":273.65,"wc":34.415,"pi":null,"bhfp":672.0,"freq":43.0,"inact":"N","cats":["S1"],"rm":"Low PIP, stimulation required"},{"cmpl":"SY00731","uwi":"SY - 0073 - TB","res":"SIMSIMA R2","string":"TB","alw":1200.0,"tr":1200.0,"qo":1305.62,"wc":69.754,"pi":null,"bhfp":895.325021376,"freq":60.0,"inact":"N","cats":["S2","C2"],"rm":"Test the well to check the well potential"},{"cmpl":"SY00741","uwi":"SY - 0074 - TB","res":"SIMSIMA R1","string":"TB","alw":120.0,"tr":120.0,"qo":83.68,"wc":41.343,"pi":null,"bhfp":966.0,"freq":null,"inact":"N","cats":["S1"],"rm":"Stimulation required"},{"cmpl":"SY00751","uwi":"SY - 0075 - TB","res":"SIMSIMA R2","string":"TB","alw":1580.0,"tr":1580.0,"qo":1423.28,"wc":56.387,"pi":null,"bhfp":912.2299794879999,"freq":50.0,"inact":"N","cats":["S2"],"rm":"Test the well to check the well potential"},{"cmpl":"SY00761","uwi":"SY - 0076 - TB","res":"SIMSIMA R2","string":"TB","alw":400.0,"tr":400.0,"qo":465.84,"wc":85.286,"pi":null,"bhfp":958.1730421220001,"freq":52.0,"inact":"N","cats":["S2"],"rm":"MRT Rrequired"},{"cmpl":"SY00771","uwi":"SY - 0077 - TB","res":"SIMSIMA R2","string":"TB","alw":980.0,"tr":980.0,"qo":1007.56,"wc":68.055,"pi":null,"bhfp":1116.746748648,"freq":54.0,"inact":"N","cats":["S2"],"rm":"High water cut"},{"cmpl":"SY00781","uwi":"SY - 0078 - TB","res":"SIMSIMA R2","string":"TB","alw":880.0,"tr":880.0,"qo":879.48,"wc":71.064,"pi":null,"bhfp":638.2991324736,"freq":60.0,"inact":"N","cats":["S2","C2"],"rm":"Test the well to check the well potential"},{"cmpl":"SY00791","uwi":"SY - 0079 - TB","res":"SIMSIMA R2","string":"TB","alw":454.0,"tr":454.0,"qo":435.04,"wc":86.732,"pi":null,"bhfp":1202.9018955956,"freq":55.0,"inact":"N","cats":["S2"],"rm":"High water cut"},{"cmpl":"SY00801","uwi":"SY - 0080 - TB","res":"SIMSIMA R1","string":"TB","alw":362.4,"tr":400.0,"qo":467.92,"wc":55.583,"pi":null,"bhfp":859.72007916,"freq":46.0,"inact":"N","cats":["S1","S2"],"rm":"wc increase"},{"cmpl":"SY00811","uwi":"SY - 0081 - TB","res":"SIMSIMA R1","string":"TB","alw":564.22,"tr":650.0,"qo":538.2,"wc":25.663,"pi":null,"bhfp":628.3300861248,"freq":50.0,"inact":"N","cats":["S1"],"rm":"Test higher rate"},{"cmpl":"SY00821","uwi":"SY - 0082 - TB","res":"SIMSIMA R2","string":"TB","alw":780.0,"tr":780.0,"qo":942.42,"wc":71.754,"pi":null,"bhfp":775.0671957167999,"freq":55.0,"inact":"N","cats":["S2"],"rm":"wc increase"},{"cmpl":"SY00851","uwi":"SY - 0085 - TB","res":"SIMSIMA R1","string":"TB","alw":500.0,"tr":500.0,"qo":499.96,"wc":28.963,"pi":null,"bhfp":570.0,"freq":50.0,"inact":"N","cats":["S1","S3"],"rm":"Limit production to get pwf above Pb"},{"cmpl":"SY00861","uwi":"SY - 0086 - TB","res":"SIMSIMA R2","string":"TB","alw":0.0,"tr":0.0,"qo":null,"wc":65.249,"pi":null,"bhfp":772.1051867379999,"freq":55.0,"inact":"N","cats":["S2"],"rm":"flowing only water.  RM requested to S/D and conduct PLT when possible"},{"cmpl":"SY00871","uwi":"SY - 0087 - TB","res":"SIMSIMA R2","string":"TB","alw":780.0,"tr":780.0,"qo":908.36,"wc":70.024,"pi":null,"bhfp":939.6314696544,"freq":50.0,"inact":"N","cats":["S2","C2"],"rm":"Test the well at higher freq/choke"},{"cmpl":"SY00881","uwi":"SY - 0088 - TB","res":"SIMSIMA R2","string":"TB","alw":1500.0,"tr":1500.0,"qo":619.24,"wc":46.351,"pi":null,"bhfp":754.8991891008,"freq":60.0,"inact":"N","cats":["S2","C2"],"rm":"MRT at higher freq"},{"cmpl":"SY00891","uwi":"SY - 0089 - TB","res":"SIMSIMA R2","string":"TB","alw":320.0,"tr":320.0,"qo":96.18,"wc":94.215,"pi":null,"bhfp":1122.0,"freq":43.0,"inact":"N","cats":["S2"],"rm":"High water cut, planned for chemical WSO"},{"cmpl":"SY00901","uwi":"SY - 0090 - TB","res":"SIMSIMA R2","string":"TB","alw":700.0,"tr":750.0,"qo":537.3,"wc":57.609,"pi":null,"bhfp":557.8081932800001,"freq":52.0,"inact":"N","cats":[],"rm":"AICV completion, PLT planned"},{"cmpl":"SY00911","uwi":"SY - 0091 - TB","res":"SIMSIMA R2","string":"TB","alw":0.0,"tr":0.0,"qo":119.36,"wc":93.257,"pi":null,"bhfp":1328.25991232,"freq":49.0,"inact":"Disconnected","cats":["S2"],"rm":"High water cut"},{"cmpl":"SY00921","uwi":"SY - 0092 - TB","res":"SIMSIMA R2","string":"TB","alw":1500.0,"tr":1500.0,"qo":1416.84,"wc":60.053,"pi":null,"bhfp":1234.236454752,"freq":54.46,"inact":"N","cats":["S2","C2"],"rm":"Test the well at higher freq >57 Hz"},{"cmpl":"SY00931","uwi":"SY - 0093 - TB","res":"SIMSIMA R1","string":"TB","alw":300.0,"tr":400.0,"qo":476.88,"wc":26.602,"pi":null,"bhfp":520.6736693600001,"freq":48.0,"inact":"Y","cats":["S4"],"rm":"Well available from May onwards"},{"cmpl":"SY00941","uwi":"SY - 0094 - TB","res":"SIMSIMA R2","string":"TB","alw":1210.0,"tr":1600.0,"qo":1132.52,"wc":77.82,"pi":null,"bhfp":1400.72273824,"freq":52.0,"inact":"N","cats":["S2"],"rm":"wc increase, flowing at high liq 5100 bpd at 52 Hz"},{"cmpl":"SY00951","uwi":"SY - 0095 - TB","res":"SIMSIMA R2","string":"TB","alw":1500.0,"tr":1500.0,"qo":1319.08,"wc":50.885,"pi":null,"bhfp":829.0,"freq":50.0,"inact":"N","cats":["S2"],"rm":"wc increase"},{"cmpl":"SY00961","uwi":"SY - 0096 - TB","res":"SIMSIMA R1","string":"TB","alw":80.0,"tr":80.0,"qo":63.24,"wc":70.349,"pi":null,"bhfp":521.0191354,"freq":null,"inact":"N","cats":["S1","S2"],"rm":"AICV well , require investigation"},{"cmpl":"SY00971","uwi":"SY - 0097 - TB","res":"SIMSIMA R2","string":"TB","alw":700.0,"tr":700.0,"qo":null,"wc":null,"pi":null,"bhfp":null,"freq":null,"inact":"Y","cats":["S4"],"rm":"New OP, TR to update after commissioning"},{"cmpl":"SY00981","uwi":"SY - 0098 - TB","res":"SIMSIMA R2","string":"TB","alw":0.0,"tr":0.0,"qo":759.28,"wc":71.707,"pi":null,"bhfp":845.0577496,"freq":57.0,"inact":"Y","cats":["S4","S2"],"rm":"well flowing but no data at MPFM, test the well at WH using Testing package"},{"cmpl":"SY00991","uwi":"SY - 0099 - TB","res":"SIMSIMA R2","string":"TB","alw":1150.0,"tr":1150.0,"qo":1190.62,"wc":68.841,"pi":null,"bhfp":1052.79902048,"freq":60.0,"inact":"N","cats":["S2","C2"],"rm":"wc increase to 69% as of Nov-2025"},{"cmpl":"SY01001","uwi":"SY - 0100 - TB","res":"SIMSIMA R2","string":"TB","alw":1350.0,"tr":1350.0,"qo":1458.8,"wc":49.79,"pi":null,"bhfp":865.6394936,"freq":60.0,"inact":"N","cats":["C2"],"rm":"Little oil decrease & water increase"},{"cmpl":"SY01011","uwi":"SY - 0101 - TB","res":"SIMSIMA R2","string":"TB","alw":1100.0,"tr":1100.0,"qo":922.92,"wc":68.6,"pi":null,"bhfp":1055.0242,"freq":45.0,"inact":"N","cats":["S2"],"rm":"wc increase"},{"cmpl":"SY01021","uwi":"SY - 0102 - TB","res":"SIMSIMA R2","string":"TB","alw":780.0,"tr":780.0,"qo":690.04,"wc":65.367,"pi":null,"bhfp":590.0,"freq":55.0,"inact":"N","cats":["S2"],"rm":"High water cut. Candidiate for Shifting tool with SLB ( ongoing evlation)"},{"cmpl":"SY01031","uwi":"SY - 0103 - TB","res":"SIMSIMA R2","string":"TB","alw":1650.0,"tr":1650.0,"qo":1746.5,"wc":38.049,"pi":null,"bhfp":1022.7052349200001,"freq":49.0,"inact":"N","cats":[],"rm":"Little oil increase & water decrease"},{"cmpl":"SY01041","uwi":"SY - 0104 - TB","res":"SIMSIMA R2","string":"TB","alw":0.0,"tr":0.0,"qo":430.8,"wc":84.687,"pi":null,"bhfp":1445.0,"freq":53.0,"inact":"N","cats":["S2","C2"],"rm":"Test the well at higher Freq/choke"},{"cmpl":"SY01051","uwi":"SY - 0105 - TB","res":"SIMSIMA R2","string":"TB","alw":1530.0,"tr":1530.0,"qo":1560.8,"wc":49.946,"pi":null,"bhfp":817.57395552,"freq":59.0,"inact":"N","cats":["S2","C2"],"rm":"Test the well to check the well potential"},{"cmpl":"SY01071","uwi":"SY - 0107 - TB","res":"SIMSIMA R1","string":"TB","alw":370.0,"tr":370.0,"qo":386.34,"wc":60.293,"pi":null,"bhfp":985.8960016,"freq":null,"inact":"","cats":["S2","C2"],"rm":"Test the well at higher Freq"},{"cmpl":"SY01081","uwi":"SY - 0108 - TB","res":"SIMSIMA R1","string":"TB","alw":300.0,"tr":300.0,"qo":472.96,"wc":27.371,"pi":null,"bhfp":529.0,"freq":46.0,"inact":"N","cats":["S1","S3"],"rm":"Limit production to get pwf above Pb"},{"cmpl":"SY01101","uwi":"SY - 0110 - TB","res":"SIMSIMA R1","string":"TB","alw":260.0,"tr":300.0,"qo":293.0,"wc":27.114,"pi":null,"bhfp":725.951496,"freq":42.0,"inact":"N","cats":["S1","C2"],"rm":"test at higher freq"},{"cmpl":"SY01111","uwi":"SY - 0111 - TB","res":"SIMSIMA R1","string":"TB","alw":424.0,"tr":450.0,"qo":643.02,"wc":21.823,"pi":null,"bhfp":598.0,"freq":55.0,"inact":"N","cats":["S1"],"rm":"the well was stimulated (Naphtha + HCL)"},{"cmpl":"SY01121","uwi":"SY - 0112 - TB","res":"SIMSIMA R1","string":"TB","alw":600.0,"tr":600.0,"qo":688.16,"wc":15.766,"pi":null,"bhfp":503.0,"freq":null,"inact":"N","cats":["S1"],"rm":"Low intake"},{"cmpl":"SY01131","uwi":"SY - 0113 - TB","res":"SIMSIMA R1","string":"TB","alw":877.16,"tr":900.0,"qo":882.58,"wc":26.367,"pi":null,"bhfp":679.74811936,"freq":75.0,"inact":"N","cats":["S1","S2","C2"],"rm":"ESP running at max. Frequency"},{"cmpl":"SY01141","uwi":"SY - 0114 - TB","res":"SIMSIMA R1","string":"TB","alw":700.0,"tr":700.0,"qo":763.8,"wc":38.567,"pi":null,"bhfp":519.70061104,"freq":55.0,"inact":"N","cats":["S2"],"rm":"wc increase"},{"cmpl":"SY01151","uwi":"SY - 0115 - TB","res":"SIMSIMA R1","string":"TB","alw":0.0,"tr":0.0,"qo":512.0,"wc":12.027,"pi":null,"bhfp":567.0,"freq":44.0,"inact":"N","cats":["S1"],"rm":"Low PIP"},{"cmpl":"SY01161","uwi":"SY - 0116 - TB","res":"SIMSIMA R1","string":"TB","alw":700.0,"tr":700.0,"qo":677.48,"wc":64.281,"pi":null,"bhfp":875.6438811200001,"freq":54.9,"inact":"N","cats":["S2"],"rm":"MRT required"},{"cmpl":"SY01171","uwi":"SY - 0117 - TB","res":"SIMSIMA R1","string":"TB","alw":0.0,"tr":460.0,"qo":494.0,"wc":14.945,"pi":null,"bhfp":515.0,"freq":48.0,"inact":"Y","cats":["S4","S1"],"rm":"Well available from Jun onwards"},{"cmpl":"SY01181","uwi":"SY - 0118 - TB","res":"SIMSIMA R1","string":"TB","alw":750.0,"tr":750.0,"qo":null,"wc":null,"pi":null,"bhfp":null,"freq":null,"inact":"N","cats":[],"rm":"New OP, TR to update after commissioning"},{"cmpl":"SY01191","uwi":"SY - 0119 - TB","res":"SIMSIMA R1","string":"TB","alw":1264.0,"tr":1300.0,"qo":1222.1,"wc":19.122,"pi":null,"bhfp":600.24070352,"freq":52.0,"inact":"N","cats":["S1","S2"],"rm":"Low PIP"},{"cmpl":"SY01201","uwi":"SY - 0120 - TB","res":"SIMSIMA R1","string":"TB","alw":350.0,"tr":350.0,"qo":789.96,"wc":2.116,"pi":null,"bhfp":663.0,"freq":47.43,"inact":"N","cats":["S1","S3"],"rm":"Limit production to get pwf above Pb"},{"cmpl":"SY01211","uwi":"SY - 0121 - TB","res":"SIMSIMA R2","string":"TB","alw":1200.0,"tr":1200.0,"qo":1079.0,"wc":59.5,"pi":null,"bhfp":null,"freq":45.0,"inact":"N","cats":["C2"],"rm":"test at higher freq > 45 Hz"},{"cmpl":"SY01221","uwi":"SY - 0122 - TB","res":"SIMSIMA R2","string":"TB","alw":320.0,"tr":320.0,"qo":null,"wc":null,"pi":null,"bhfp":665.0,"freq":null,"inact":"N","cats":["S1"],"rm":"Low PIP, PLT required"},{"cmpl":"SY01231","uwi":"SY - 0123 - TB","res":"SIMSIMA R2","string":"TB","alw":50.0,"tr":50.0,"qo":32.04,"wc":91.789,"pi":null,"bhfp":810.4460544,"freq":44.0,"inact":"N","cats":["S2"],"rm":"Evaluate a sidetrack"},{"cmpl":"SY01241","uwi":"SY - 0124 - TB","res":"SIMSIMA R2","string":"TB","alw":1050.0,"tr":1050.0,"qo":1079.82,"wc":61.5,"pi":null,"bhfp":845.0,"freq":55.24,"inact":"N","cats":["S2"],"rm":"wc increase"},{"cmpl":"SY01271","uwi":"SY - 0127 - TB","res":"SIMSIMA R1","string":"TB","alw":395.66,"tr":500.0,"qo":378.16,"wc":48.981,"pi":null,"bhfp":860.65952032,"freq":46.0,"inact":"N","cats":["S2"],"rm":"wc increase"},{"cmpl":"SY01281","uwi":"SY - 0128 - TB","res":"SIMSIMA R1","string":"TB","alw":500.0,"tr":500.0,"qo":468.82,"wc":42.576,"pi":null,"bhfp":605.17641888,"freq":45.0,"inact":"N","cats":["S2"],"rm":"Low ESP-PIP, wc increase"},{"cmpl":"SY01291","uwi":"SY - 0129 - TB","res":"SIMSIMA R1","string":"TB","alw":50.0,"tr":50.0,"qo":15.82,"wc":61.546,"pi":null,"bhfp":975.0,"freq":40.0,"inact":"N","cats":["S1","S2"],"rm":"Low PIP, low productive well, eavluate WO for wellperforation or Re-entry"},{"cmpl":"SY01301","uwi":"SY - 0130 - TB","res":"SIMSIMA R1","string":"TB","alw":400.0,"tr":400.0,"qo":385.88,"wc":57.624,"pi":null,"bhfp":545.60756,"freq":53.0,"inact":"N","cats":["S1"],"rm":"Low PIP"},{"cmpl":"SY01311","uwi":"SY - 0131 - TB","res":"SIMSIMA R1","string":"TB","alw":270.0,"tr":270.0,"qo":277.2,"wc":19.297,"pi":null,"bhfp":563.6219494,"freq":43.0,"inact":"N","cats":["S1"],"rm":"Low PIP and BHFP"},{"cmpl":"SY01321","uwi":"SY - 0132 - TB","res":"SIMSIMA R1","string":"TB","alw":550.0,"tr":550.0,"qo":1001.14,"wc":10.523,"pi":null,"bhfp":635.0,"freq":59.83,"inact":"N","cats":["S1","S3","C2"],"rm":"Limit production to get pwf above Pb"},{"cmpl":"SY01331","uwi":"SY - 0133 - TB","res":"SIMSIMA R1","string":"TB","alw":100.0,"tr":100.0,"qo":42.0,"wc":62.832,"pi":null,"bhfp":586.49047056,"freq":40.0,"inact":"N","cats":["S1","S2"],"rm":"Low PIP, low productive well"},{"cmpl":"SY01341","uwi":"SY - 0134 - TB","res":"SIMSIMA R2","string":"TB","alw":511.0,"tr":511.0,"qo":528.0,"wc":79.405,"pi":null,"bhfp":1076.0,"freq":59.0,"inact":"N","cats":["S2","C2"],"rm":"High water cut"},{"cmpl":"SY01351","uwi":"SY - 0135 - TB","res":"SIMSIMA R1","string":"TB","alw":200.0,"tr":200.0,"qo":387.88,"wc":50.966,"pi":null,"bhfp":502.0,"freq":53.8,"inact":"N","cats":["S1","S2","S3"],"rm":"Limit production to get pwf above Pb"},{"cmpl":"SY01501","uwi":"SY - 0150 - TB","res":"SIMSIMA R2","string":"TB","alw":1650.0,"tr":1650.0,"qo":1707.56,"wc":9.357,"pi":null,"bhfp":1038.9075264,"freq":47.0,"inact":"N","cats":[],"rm":"water increase"},{"cmpl":"SY01511","uwi":"SY - 0151 - TB","res":"SIMSIMA R2","string":"TB","alw":1650.0,"tr":1650.0,"qo":1737.84,"wc":5.41,"pi":null,"bhfp":1189.0,"freq":51.0,"inact":"N","cats":[],"rm":"slight water decrease"},{"cmpl":"SY01521","uwi":"SY - 0152 - TB","res":"SIMSIMA R1","string":"TB","alw":850.0,"tr":850.0,"qo":null,"wc":null,"pi":null,"bhfp":711.0,"freq":null,"inact":"N","cats":[],"rm":""},{"cmpl":"SY01531","uwi":"SY - 0153 - TB","res":"SIMSIMA R1","string":"TB","alw":780.0,"tr":800.0,"qo":727.24,"wc":15.287,"pi":null,"bhfp":598.0,"freq":50.0,"inact":"N","cats":[],"rm":"BHFP surevy required"},{"cmpl":"SY01541","uwi":"SY - 0154 - TB","res":"SIMSIMA R1","string":"TB","alw":920.42,"tr":1100.0,"qo":1011.0,"wc":27.546,"pi":null,"bhfp":867.0,"freq":60.0,"inact":"N","cats":["S2","C2"],"rm":"good intake pressure, wc increase"},{"cmpl":"SY01571","uwi":"SY - 0157 - TB","res":"SIMSIMA R2","string":"TB","alw":220.0,"tr":220.0,"qo":215.72,"wc":89.859,"pi":null,"bhfp":916.6,"freq":49.0,"inact":"N","cats":["S2"],"rm":"Rapid water cut increase and high wc"},{"cmpl":"SY01581","uwi":"SY - 0158 - TB","res":"SIMSIMA R2","string":"","alw":1450.0,"tr":1600.0,"qo":1423.72,"wc":14.259,"pi":null,"bhfp":986.0,"freq":39.0,"inact":"N","cats":["S2"],"rm":"water cut increase, recommend to reduce offtake and conduct MRT"},{"cmpl":"SY01591","uwi":"SY - 0159 - TB","res":"SIMSIMA R1","string":"TB","alw":400.0,"tr":400.0,"qo":435.0,"wc":60.916,"pi":null,"bhfp":598.78,"freq":50.0,"inact":"N","cats":["S1","S2"],"rm":"New PK04 well, not well improved after stimulation"},{"cmpl":"SY01601","uwi":"SY - 0160 - TB","res":"SIMSIMA R2","string":"TB","alw":950.0,"tr":950.0,"qo":658.06,"wc":64.382,"pi":null,"bhfp":985.6,"freq":48.0,"inact":"N","cats":["S2"],"rm":"water cut increase"},{"cmpl":"SY01611","uwi":"SY - 0161 - TB","res":"SIMSIMA R1","string":"TB","alw":180.0,"tr":180.0,"qo":105.32,"wc":35.418,"pi":null,"bhfp":825.0,"freq":52.0,"inact":"N","cats":["S1"],"rm":"PK02 well ,require another stimulation"},{"cmpl":"SY01621","uwi":"SY - 0162 - TB","res":"SIMSIMA R1","string":"TB","alw":400.0,"tr":400.0,"qo":354.0,"wc":55.915,"pi":null,"bhfp":630.0,"freq":45.0,"inact":"N","cats":["S1"],"rm":"PK04 well  ,imporved after stimulation"},{"cmpl":"SY01631","uwi":"SY - 0163 - TB","res":"SIMSIMA R2","string":"TB","alw":1350.0,"tr":1350.0,"qo":1129.58,"wc":26.773,"pi":null,"bhfp":1211.0,"freq":44.0,"inact":"N","cats":[],"rm":"PLT plan"},{"cmpl":"SY01641","uwi":"SY - 0164 - TB","res":"SIMSIMA R2","string":"TB","alw":1000.0,"tr":1000.0,"qo":1340.0,"wc":31.633,"pi":null,"bhfp":1009.0,"freq":44.0,"inact":"N","cats":[],"rm":"water cut increase, PLT plan"},{"cmpl":"SY01661","uwi":"SY - 0166 - TB","res":"SIMSIMA R2","string":"TB","alw":0.0,"tr":150.0,"qo":151.84,"wc":89.892,"pi":null,"bhfp":669.0,"freq":49.0,"inact":"N","cats":["S1","S2","C2"],"rm":"High water cut, Test at higher freq"},{"cmpl":"SY01731","uwi":"SY - 0173 - TB","res":"SIMSIMA R3","string":"TB","alw":1000.0,"tr":1000.0,"qo":1437.12,"wc":21.293,"pi":null,"bhfp":632.0,"freq":57.0,"inact":"N","cats":[],"rm":"water cut increase, plan PLT and conduct MRT"},{"cmpl":"SY01741","uwi":"SY - 0174 - TB","res":"SIMSIMA R1","string":"TB","alw":260.0,"tr":260.0,"qo":228.0,"wc":53.374,"pi":null,"bhfp":517.6,"freq":48.0,"inact":"N","cats":["S1","S2"],"rm":"PK04 well , naphtha stimulation completed and the production enhanced. Wc increase"},{"cmpl":"SY01781","uwi":"SY - 0178 - TB","res":"SIMSIMA R1","string":"TB","alw":300.0,"tr":340.0,"qo":null,"wc":20.0,"pi":null,"bhfp":1225.0,"freq":null,"inact":"N","cats":["S1"],"rm":"No test data and requires to be tested"},{"cmpl":"SY01891","uwi":"SY - 0189 - TB","res":"SIMSIMA R1","string":"TB","alw":700.0,"tr":750.0,"qo":null,"wc":34.0,"pi":null,"bhfp":null,"freq":null,"inact":"N","cats":[],"rm":"low BHFP close to the GL"},{"cmpl":"SY01891","uwi":"SY - 0194 - TB","res":"SIMSIMA R2","string":"TB","alw":1400.0,"tr":1600.0,"qo":713.0,"wc":62.0,"pi":null,"bhfp":null,"freq":null,"inact":"N","cats":["S2"],"rm":"New OP"}];
+const WI    = [{"well":"139 LS","res":"R2","alw":5000.0,"max_wo":6000.0,"tr":10000.0,"actual":6000.0,"whip":370.0,"rm":""},{"well":"139 SS","res":"R1","alw":5500.0,"max_wo":7000.0,"tr":7500.0,"actual":7000.0,"whip":521.0,"rm":"This injection rate does not appear to reflect the true R1 injectivity. Water loss to R2 is likely occurring due to communication between reservoir units. Note: Well LS & SS integrity issues have been ruled out following investigation."},{"well":"141 LS","res":"R2","alw":15000.0,"max_wo":14000.0,"tr":15000.0,"actual":14000.0,"whip":520.0,"rm":"We suggest to increase R2 injection to 15000"},{"well":"141 SS","res":"R1","alw":3800.0,"max_wo":3600.0,"tr":3800.0,"actual":3600.0,"whip":665.0,"rm":"Propose to do stimulation"},{"well":"145 LS","res":"R2","alw":5500.0,"max_wo":7000.0,"tr":9500.0,"actual":7000.0,"whip":406.0,"rm":""},{"well":"145 SS","res":"R1","alw":5000.0,"max_wo":6000.0,"tr":7200.0,"actual":6000.0,"whip":400.0,"rm":"This injection rate does not appear to reflect the true R1 injectivity. Water loss to R2 is likely occurring due to communication between reservoir units. Note: Well LS & SS integrity issues have been ruled out following investigation.\""},{"well":"146 TB","res":"R1","alw":1800.0,"max_wo":1400.0,"tr":2000.0,"actual":1400.0,"whip":738.0,"rm":"Naphtha +HCL stimulation is required"},{"well":"175 TB","res":"R1","alw":5000.0,"max_wo":0.0,"tr":8000.0,"actual":8000.0,"whip":600.0,"rm":"WO for integrity & accessibility correction"},{"well":"180 TB","res":"R1","alw":4000.0,"max_wo":0.0,"tr":8000.0,"actual":null,"whip":null,"rm":"WO for integrity & accessibility correction"}];
+const BN    = [{"id":"S1","label":"Low PIP / stim candidate","type":"Subsurface","wells":32,"bopd":12000,"link":"\u00a74.1"},{"id":"S2","label":"High water cut (>60%)","type":"Subsurface","wells":38,"bopd":7000,"link":"\u00a74.6 + 1.2A"},{"id":"S3","label":"Low BHFP \u2014 close to Pb","type":"Subsurface","wells":12,"bopd":1800,"link":"\u00a74.2"},{"id":"S4","label":"Inactive strings \u2014 WO backlog","type":"Subsurface","wells":14,"bopd":3920,"link":"\u00a74.8 + 1.1B"},{"id":"S5","label":"Reservoir pressure depletion","type":"Subsurface","wells":8,"bopd":5000,"link":"\u00a74.5"},{"id":"C1","label":"Low DP across choke / VSD required","type":"Surface","wells":22,"bopd":6500,"link":"\u00a74.3"},{"id":"C2","label":"ESP at max frequency","type":"Completion","wells":14,"bopd":3500,"link":"\u00a74.4"},{"id":"C3","label":"High back-pressure (flowline / station)","type":"Surface","wells":null,"bopd":3000,"link":"\u00a74.7"},{"id":"W1","label":"Cluster capacity ceiling 26 Mbwpd","type":"WI","wells":null,"bopd":null,"link":"\u00a74.5 Ph 2"},{"id":"W2","label":"WI well integrity (SY-175, SY-180)","type":"WI","wells":2,"bopd":null,"link":"\u00a74.5 Ph 1"},{"id":"W3","label":"R1\u2194R2 inter-reservoir water loss","type":"WI","wells":2,"bopd":null,"link":"\u00a74.6 (a)"},{"id":"W4","label":"High-WC producers loading PW system","type":"WI","wells":12,"bopd":null,"link":"\u00a74.6 (c)"}];
+const OPPS  = [{"id":"4.5","title":"WI capacity uplift (SY-175 + SY-180 + cluster review)","category":"Subsurface / WI","low":2500,"high":4000,"full_low":4000,"full_high":5500,"conf":"Med-High","capex_low":2.0,"capex_high":28.0,"mechanism":"Phase 1: complete WO on SY-175 & SY-180 to recover 16,000 bwpd stranded capacity. Phase 2 (2027): Cluster #2 capacity uplift study based on Jan-2026 FCT. Phase 3: new WI well drilling if VRR confirms additional voidage to fill. Sector pressure recovery lifts Qo across ~30 R1/R2 producers. Saih Rawl analog (SPE 68222): ~12% oil rate uplift per 30% WI rate increase at mature waterflood stage.","prereq":"Cluster #2 / SY-148 WS FCT (RM-mandated before SY-180 commissioning); G2V2 ML#5 forecast"},{"id":"4.7","title":"Surface back-pressure optimization","category":"Surface","low":1500,"high":2500,"full_low":2300,"full_high":3300,"conf":"Medium","capex_low":0.2,"capex_high":8.0,"mechanism":"Phase 1: Station header pressure setpoint review (CDS / RDS-1 / RDS-2). Each 10 psi separator pressure reduction across 80 R1 producers \u2248 +800 BOPD. Phase 2: Selective flowline looping on 2-3 worst segments (>200 psi/km \u0394P). Phase 3: Choke-on-test vs production-choke alignment.","prereq":"January-2026 FCT report; GAP/Prosper IPM model; WHIP/WHFP-vs-time per well \u2014 pending FCT report"},{"id":"4.6","title":"Produced-water redistribution + R1\u2194R2 rebalancing","category":"Subsurface / WI","low":2000,"high":2400,"full_low":2400,"full_high":3200,"conf":"Medium","capex_low":0.5,"capex_high":1.5,"mechanism":"(a) Tracer + integrity diagnosis on 139-SS and 145-SS (RM flagged R1\u2192R2 water loss). (b) Rebalance injection: redirect 3,000-5,000 bwpd from R2 to R1. (c) Selective shut-in / rate reduction on 6 worst high-WC producers (>85% WC) to free PW capacity and improve sector VRR efficiency.","prereq":"PW lab analysis (TDS, scaling, particulates, H\u2082S); injector PLT/CBL on 139-SS, 145-SS"},{"id":"4.1","title":"Stimulation roll-out beyond Obj 1.1C","category":"Subsurface","low":2500,"high":2500,"full_low":5000,"full_high":6000,"conf":"Medium","capex_low":8.0,"capex_high":12.0,"mechanism":"32+ R1 strings flagged 'Low intake / Low PIP / stim required' by RM. Obj 1.1C covers 5. Apply Naphtha+HCl recipe to 8-10 additional wells per year. Target wells with PI degradation D > 30%/yr (1.1C methodology). Average gain +150 to +400 BOPD per well, declining 30%/yr.","prereq":"Per-well PI screening across 32 stim candidates (extension of 1.1C dashboard)"},{"id":"4.3","title":"VSD / PWS retrofit campaign","category":"Surface / Completion","low":1600,"high":1600,"full_low":3300,"full_high":5500,"conf":"High","capex_low":2.4,"capex_high":4.8,"mechanism":"22 strings flagged 'Low DP across choke / VSD required' \u2014 ESP-limited not reservoir-limited. Replace fixed-speed power with PWS-VSD; allows running at 55-60 Hz to push past choke-DP-limited operating point. Already proven on 10 Shah wells (SY-012, 019, 026, 035, 039, 097).","prereq":"Power-system loading review (does Shah electrical infra support 8 more VSDs?)"},{"id":"4.4","title":"ESP upsize where pump at max frequency","category":"Completion","low":800,"high":800,"full_low":2800,"full_high":2800,"conf":"Medium","capex_low":2.0,"capex_high":3.2,"mechanism":"14 strings already at 55-60 Hz with no headroom (SY-073, 088, 094, 099, 100, 113). During next workover install pump from one tier higher in catalog (TE3300 \u2192 TE5000, GN3200 \u2192 GN4000). Combine with VSD where not already present.","prereq":"Per-well ESP design review; align with existing WO schedule"},{"id":"4.2","title":"BHFP rate-cap relaxation via skin reduction / PVT relocalization","category":"Subsurface","low":900,"high":900,"full_low":1800,"full_high":1800,"conf":"Med-High","capex_low":0.2,"capex_high":0.5,"mechanism":"12 strings explicitly capped at low rate to keep BHFP \u2265 Pb+100 (SY-040, 058, 064, 085, 120, 132, 135, 014). Two paths: (a) skin reduction via stimulation reduces drawdown for same Qo; (b) per-well revisit of Pb assumption \u2014 for some R1 wells, local Pb may be lower than 392 psi.","prereq":"GAP/Prosper IPM model; PVT relocalization study"},{"id":"4.8","title":"Inactive-string reactivation acceleration","category":"Cross-cut Obj 1.1B","low":1000,"high":1000,"full_low":3920,"full_high":3920,"conf":"High","capex_low":0.5,"capex_high":1.0,"mechanism":"14 inactive strings totaling 3,920 BOPD allowable (SY-035 PWS, SY-097 tie-in, SY-098 downsize, SY-115/117 ESP repl, SY-093 SAP-B fix). Speed of execution is the lever \u2014 every quarter of acceleration \u2248 +1,000 BOPD avg uplift over the year.","prereq":"Coordination with Obj 1.1B inactive-string KPI track"}];
+const GAPS  = [["January-2026 FCT report","Surface bottleneck quantification (\u00a74.7) cannot move past estimate"],["GAP/Prosper IPM surface model","Needed to run back-pressure sensitivities"],["G2V2 reservoir model \u2014 ML#5","Needed to quantify \u00a74.5 oil response and \u00a74.6 R1/R2 rebalancing"],["Cluster #2 / SY-148 WS FCT","RM-mandated prerequisite for SY-180 commissioning (\u00a74.5)"],["PIDs / PFDs / vendor capacity sheets","CDS, RDS-1, RDS-2, WI clusters"],["Produced water lab analysis","TDS, scaling, particulates, H\u2082S \u2014 needed for \u00a74.6 design"],["WHIP-vs-time / WHPP-vs-time per well","Needed to validate flowline-restriction hypothesis (\u00a74.7)"],["Injector PLT / CBL logs (139-SS, 145-SS)","Needed for \u00a74.6 (a) integrity hypothesis"],["Per-well PI screening (32 stim candidates)","Extension of 1.1C methodology to scope \u00a74.1"]];
+
+Chart.defaults.color = '#8b94a3';
+Chart.defaults.borderColor = '#1f242e';
+Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+
+// ----- Tabs -----
+document.querySelectorAll('nav button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById(b.dataset.tab).classList.add('active');
+  });
+});
+
+// ----- Baseline chart -----
+new Chart(document.getElementById('cBaseline'), {
+  type:'bar',
+  data:{
+    labels:['Actual (FAR)','Allowable','TR','Allow w/ Inactive','Ceiling'],
+    datasets:[{
+      data:[75733,76671,79983,80591,102752],
+      backgroundColor:['#f59e0b','#0891b2','#34d399','#06b6d4','#0a2540'],
+      borderRadius:3
+    }]
+  },
+  options:{
+    indexAxis:'y',
+    plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c => c.raw.toLocaleString()+' BOPD'}}},
+    scales:{x:{ticks:{callback:v => (v/1000).toFixed(0)+'k'}, grid:{color:'#1f242e'}},
+            y:{grid:{display:false}}},
+    maintainAspectRatio:false
+  }
+});
+
+// ----- Bottleneck table -----
+const bnTbody = document.querySelector('#bnTable tbody');
+const maxBopd = Math.max(...BN.filter(b => b.bopd).map(b => b.bopd));
+BN.forEach(b => {
+  const tr = document.createElement('tr');
+  const barW = b.bopd ? (b.bopd / maxBopd * 100).toFixed(0) : 0;
+  tr.innerHTML = `
+    <td><b style="color:var(--oil);font-family:'JetBrains Mono',monospace;">${b.id}</b></td>
+    <td>${b.label}</td>
+    <td><span class="chip ${b.type === 'Subsurface' ? 'S5' : b.type === 'Surface' ? 'C3' : b.type === 'Completion' ? 'C1' : 'S2'}">${b.type}</span></td>
+    <td style="text-align:right;font-family:'JetBrains Mono',monospace;">${b.wells ?? '—'}</td>
+    <td class="bar-cell">${b.bopd ? `<span class="bar" style="width:${barW}%"></span><span class="bar-num">${b.bopd.toLocaleString()}</span>` : '<span style="color:var(--dim);font-family:\'JetBrains Mono\',monospace;">TBD</span>'}</td>
+    <td style="color:var(--teal);font-family:'JetBrains Mono',monospace;font-size:12px;">${b.link}</td>`;
+  bnTbody.appendChild(tr);
+});
+
+// ----- Opportunities ranking chart -----
+const oppsSorted = [...OPPS].sort((a,b) => (b.low+b.high)/2 - (a.low+a.high)/2);
+new Chart(document.getElementById('cOpps'), {
+  type:'bar',
+  data:{
+    labels:oppsSorted.map(o => `§${o.id}  ${o.title.length>40 ? o.title.slice(0,40)+'…' : o.title}`),
+    datasets:[
+      {label:'2026 realistic (low)', data:oppsSorted.map(o => o.low),
+        backgroundColor:'#34d399', stack:'g', borderRadius:2},
+      {label:'Uplift to high', data:oppsSorted.map(o => o.high - o.low),
+        backgroundColor:'#0891b2', stack:'g', borderRadius:2},
+      {label:'Headroom to full potential', data:oppsSorted.map(o => o.full_high - o.high),
+        backgroundColor:'rgba(245,158,11,.4)', stack:'g', borderRadius:2}
+    ]
+  },
+  options:{
+    indexAxis:'y',
+    plugins:{legend:{position:'bottom', labels:{usePointStyle:true, padding:14}},
+      tooltip:{callbacks:{label:c => c.dataset.label+': '+c.raw.toLocaleString()+' BOPD'}}},
+    scales:{x:{stacked:true, ticks:{callback:v => (v/1000).toFixed(1)+'k'}, grid:{color:'#1f242e'}},
+            y:{stacked:true, grid:{display:false}}},
+    maintainAspectRatio:false
+  }
+});
+
+// ----- Bottleneck Map (custom SVG) -----
+function buildSankey() {
+  const svg = document.getElementById('sankey');
+  const W = 1200, H = 520;
+  const leftX = 60, midX = 580, rightX = 1080;
+  const trunkW = 36;
+  const startTotal = 75733;
+  // Build wedges - 2026 realistic low with overlap deduction on 4.1, 4.3, 4.4
+  const overlap = new Set(['4.1','4.3','4.4']);
+  const wedges = OPPS.map(o => ({
+    id: o.id, label: o.title,
+    val: overlap.has(o.id) ? Math.round(o.low * 0.75) : o.low,
+    raw: o.low
+  })).sort((a,b) => b.val - a.val);
+  const totalGain = wedges.reduce((s,w) => s + w.val, 0);
+  const endTotal = startTotal + totalGain;
+  const colors = {
+    '4.5':'#0891b2','4.7':'#f59e0b','4.6':'#06b6d4','4.1':'#34d399',
+    '4.3':'#1e3a5f','4.4':'#0f172a','4.2':'#f59e0b','4.8':'#16a34a'
+  };
+
+  // Left rectangle - starting production
+  let html = '';
+  const leftH = 380, leftY = 70;
+  html += `<rect x="${leftX}" y="${leftY}" width="${trunkW}" height="${leftH}" fill="#f59e0b" rx="3"/>`;
+  html += `<text x="${leftX+trunkW/2}" y="${leftY-12}" fill="#f59e0b" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="13">FAR</text>`;
+  html += `<text x="${leftX+trunkW/2}" y="${leftY+leftH+22}" fill="#e8eaee" text-anchor="middle" font-family="JetBrains Mono" font-size="14" font-weight="700">${startTotal.toLocaleString()}</text>`;
+  html += `<text x="${leftX+trunkW/2}" y="${leftY+leftH+38}" fill="#8b94a3" text-anchor="middle" font-family="JetBrains Mono" font-size="11">BOPD</text>`;
+
+  // Right rectangle - end total
+  const rightH = leftH * (endTotal / startTotal * 0.95);
+  const rightY = leftY - (rightH - leftH);
+  html += `<rect x="${rightX}" y="${rightY}" width="${trunkW}" height="${rightH}" fill="#34d399" rx="3" opacity="0.9"/>`;
+  html += `<text x="${rightX+trunkW/2}" y="${rightY-12}" fill="#34d399" text-anchor="middle" font-family="JetBrains Mono" font-weight="700" font-size="13">2026 TARGET</text>`;
+  html += `<text x="${rightX+trunkW/2}" y="${rightY+rightH+22}" fill="#e8eaee" text-anchor="middle" font-family="JetBrains Mono" font-size="14" font-weight="700">${endTotal.toLocaleString()}</text>`;
+  html += `<text x="${rightX+trunkW/2}" y="${rightY+rightH+38}" fill="#8b94a3" text-anchor="middle" font-family="JetBrains Mono" font-size="11">BOPD</text>`;
+
+  // Flow from FAR -> midpoint
+  const flowPath = `M${leftX+trunkW} ${leftY} C${midX-200} ${leftY}, ${midX-200} ${leftY+leftH}, ${midX} ${leftY+leftH/2 + leftH/2}
+                    L${midX} ${leftY+leftH/2 - leftH/2}
+                    C${midX-200} ${leftY+leftH}, ${midX-200} ${leftY}, ${leftX+trunkW} ${leftY} Z`;
+  // Simpler: rounded rect from left to midpoint as base
+  html += `<path d="M ${leftX+trunkW} ${leftY} L ${midX} ${leftY+30} L ${midX} ${leftY+leftH-30} L ${leftX+trunkW} ${leftY+leftH} Z" fill="rgba(245,158,11,.15)"/>`;
+
+  // Wedges from midpoint to right band - stack vertically aligned to right rect
+  let acc = 0;
+  const wedgeAreaTop = rightY + rightH - leftH;  // base existing flow at bottom
+  wedges.forEach((w,i) => {
+    const wh = (w.val / endTotal) * rightH;
+    const wy0 = rightY + (acc) ;
+    // Mid-column rectangle (wedge label band)
+    const midY = leftY + 30 + i * 42;
+    const color = colors[w.id] || '#0891b2';
+    // Wedge label box
+    html += `<rect x="${midX}" y="${midY}" width="380" height="34" fill="${color}" opacity="0.18" rx="3" stroke="${color}" stroke-width="1"/>`;
+    html += `<text x="${midX+10}" y="${midY+15}" fill="${color}" font-family="JetBrains Mono" font-size="11" font-weight="700">§${w.id}</text>`;
+    html += `<text x="${midX+50}" y="${midY+15}" fill="#e8eaee" font-family="IBM Plex Sans" font-size="12">${w.label.slice(0,42)}${w.label.length>42?'…':''}</text>`;
+    html += `<text x="${midX+10}" y="${midY+28}" fill="${color}" font-family="JetBrains Mono" font-size="11" font-weight="700">+${w.val.toLocaleString()} BOPD</text>`;
+    // Flow from wedge box to right rect (top of right column for first wedge)
+    const fy = midY + 17;
+    const ty = wy0 + wh/2;
+    html += `<path d="M ${midX+380} ${fy} Q ${midX+500} ${fy}, ${rightX-30} ${ty} L ${rightX} ${ty}" stroke="${color}" stroke-width="2" fill="none" opacity="0.5"/>`;
+    acc += wh;
+  });
+
+  // Add "from FAR" bar continuation at right
+  html += `<rect x="${rightX-15}" y="${rightY+rightH-leftH*(startTotal/endTotal)}" width="0" height="0" fill="${'#f59e0b'}"/>`;
+
+  // Bottom legend annotation
+  html += `<text x="60" y="490" fill="#8b94a3" font-family="JetBrains Mono" font-size="11">Gain bridge — width of each row encodes 2026 realistic BOPD contribution (low end). §4.1/§4.3/§4.4 deflated ×0.75 for overlap.</text>`;
+  svg.innerHTML = html;
+}
+buildSankey();
+
+// ----- BN charts -----
+const bnLossData = BN.filter(b => b.bopd);
+new Chart(document.getElementById('cBnLoss'), {
+  type:'bar',
+  data:{labels:bnLossData.map(b => b.id), datasets:[{
+    data:bnLossData.map(b => b.bopd),
+    backgroundColor:bnLossData.map(b =>
+      b.type==='Subsurface' ? '#0891b2' :
+      b.type==='Surface'    ? '#f59e0b' :
+      b.type==='Completion' ? '#1e3a5f' : '#06b6d4'),
+    borderRadius:3
+  }]},
+  options:{
+    plugins:{legend:{display:false}, tooltip:{callbacks:{label:c => bnLossData[c.dataIndex].label+': '+c.raw.toLocaleString()+' BOPD'}}},
+    scales:{y:{ticks:{callback:v => (v/1000)+'k'}, grid:{color:'#1f242e'}},
+            x:{grid:{display:false}}},
+    maintainAspectRatio:false
+  }
+});
+const bnCountData = BN.filter(b => b.wells);
+new Chart(document.getElementById('cBnCount'), {
+  type:'bar',
+  data:{labels:bnCountData.map(b => b.id), datasets:[{
+    data:bnCountData.map(b => b.wells),
+    backgroundColor:bnCountData.map(b =>
+      b.type==='Subsurface' ? '#0891b2' :
+      b.type==='Surface'    ? '#f59e0b' :
+      b.type==='Completion' ? '#1e3a5f' : '#06b6d4'),
+    borderRadius:3
+  }]},
+  options:{
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c => bnCountData[c.dataIndex].label+': '+c.raw+' wells'}}},
+    scales:{y:{grid:{color:'#1f242e'}},x:{grid:{display:false}}},
+    maintainAspectRatio:false
+  }
+});
+
+// ----- Opportunity accordion -----
+const oppList = document.getElementById('oppList');
+oppsSorted.forEach((o, idx) => {
+  const confClass = o.conf === 'High' ? 'conf-H' : o.conf === 'Med-High' ? 'conf-MH' : 'conf-M';
+  const capexMid = (o.capex_low + o.capex_high) / 2;
+  const gainMid = (o.low + o.high) / 2;
+  const usdPerBopd = Math.round(capexMid * 1e6 / gainMid).toLocaleString();
+  const maxPotential = 6000;
+  const lowPct = (o.low / maxPotential * 100).toFixed(0);
+  const widthPct = ((o.high - o.low) / maxPotential * 100).toFixed(0);
+  const fullPct = ((o.full_high - o.high) / maxPotential * 100).toFixed(0);
+  const card = document.createElement('div');
+  card.className = 'opp-card' + (idx === 0 ? ' open' : '');
+  card.innerHTML = `
+    <div class="opp-head">
+      <div class="rank">${idx+1}</div>
+      <span class="id">§${o.id}</span>
+      <div class="title">${o.title}</div>
+      <div class="gain">+${o.low.toLocaleString()}${o.high!==o.low?'–'+o.high.toLocaleString():''} BOPD</div>
+      <div class="arrow">▶</div>
+    </div>
+    <div class="opp-body">
+      <div class="opp-grid">
+        <div class="opp-stat"><div class="lbl">2026 Realistic</div><div class="val">${o.low.toLocaleString()}${o.high!==o.low?'–'+o.high.toLocaleString():''} <span style="font-size:12px;color:var(--sub);">BOPD</span></div></div>
+        <div class="opp-stat"><div class="lbl">Full Potential</div><div class="val">${o.full_low.toLocaleString()}${o.full_high!==o.full_low?'–'+o.full_high.toLocaleString():''} <span style="font-size:12px;color:var(--sub);">BOPD</span></div></div>
+        <div class="opp-stat"><div class="lbl">Capex Bracket</div><div class="val">$${o.capex_low}–${o.capex_high}<span style="font-size:12px;color:var(--sub);"> M</span></div></div>
+        <div class="opp-stat"><div class="lbl">$ / BOPD</div><div class="val">$${usdPerBopd}</div></div>
+      </div>
+      <div class="opp-section">
+        <h4>Gain Range</h4>
+        <div class="gain-range">
+          <div class="full" style="left:${lowPct}%; width:${Math.max(0, parseFloat(widthPct)+parseFloat(fullPct))}%"></div>
+          <div class="fill" style="left:${lowPct}%; width:${widthPct||1}%"></div>
+        </div>
+        <div style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--sub);">Solid = 2026 realistic · Striped = headroom to full potential · Scale 0 → 6,000 BOPD</div>
+      </div>
+      <div class="opp-section">
+        <h4>Mechanism</h4>
+        <p>${o.mechanism}</p>
+      </div>
+      <div class="opp-section">
+        <h4>Prerequisite</h4>
+        <p class="prereq">${o.prereq}</p>
+      </div>
+      <div class="opp-section">
+        <h4>Category &nbsp;·&nbsp; Confidence</h4>
+        <p>${o.category} &nbsp;·&nbsp; <span class="chip ${confClass}">${o.conf}</span></p>
+      </div>
+    </div>`;
+  oppList.appendChild(card);
+});
+document.querySelectorAll('.opp-head').forEach(h => {
+  h.addEventListener('click', () => h.parentElement.classList.toggle('open'));
+});
+
+// ----- Wells table -----
+const wTbody = document.querySelector('#wTable tbody');
+let sortKey = null, sortDir = 1;
+
+function renderWells() {
+  const q = document.getElementById('wellSearch').value.toLowerCase();
+  const cat = document.getElementById('catFilter').value;
+  const res = document.getElementById('resFilter').value;
+  let rows = WELLS.filter(w => {
+    if (q) {
+      const blob = (w.cmpl+' '+w.uwi+' '+w.res+' '+(w.rm||'')).toLowerCase();
+      if (!blob.includes(q)) return false;
+    }
+    if (cat && !(w.cats || []).includes(cat)) return false;
+    if (res && w.res !== res) return false;
+    return true;
+  });
+  if (sortKey) {
+    rows.sort((a,b) => {
+      const va = a[sortKey], vb = b[sortKey];
+      if (va == null) return 1; if (vb == null) return -1;
+      if (typeof va === 'number') return (va - vb) * sortDir;
+      return String(va).localeCompare(String(vb)) * sortDir;
+    });
+  }
+  wTbody.innerHTML = rows.map(w => `
+    <tr>
+      <td><b style="font-family:'JetBrains Mono',monospace;font-size:12px;">${w.cmpl}</b></td>
+      <td style="color:var(--sub);font-size:12px;">${w.res || '—'}</td>
+      <td style="text-align:right;font-family:'JetBrains Mono',monospace;">${w.alw ?? '—'}</td>
+      <td style="text-align:right;font-family:'JetBrains Mono',monospace;">${w.tr ?? '—'}</td>
+      <td style="text-align:right;font-family:'JetBrains Mono',monospace;">${w.qo != null ? w.qo.toFixed(0) : '—'}</td>
+      <td style="text-align:right;font-family:'JetBrains Mono',monospace;${w.wc>=85?'color:var(--bad)':w.wc>=60?'color:var(--oil)':''}">${w.wc != null ? w.wc.toFixed(1) : '—'}</td>
+      <td style="text-align:right;font-family:'JetBrains Mono',monospace;">${w.pi != null ? w.pi.toFixed(2) : '—'}</td>
+      <td style="text-align:right;font-family:'JetBrains Mono',monospace;">${w.bhfp ?? '—'}</td>
+      <td style="text-align:right;font-family:'JetBrains Mono',monospace;${w.freq>=58?'color:var(--oil)':''}">${w.freq ?? '—'}</td>
+      <td>${w.inact === 'Y' ? '<span class="chip S4">Y</span>' : '—'}</td>
+      <td>${(w.cats||[]).map(c => `<span class="chip ${c}">${c}</span>`).join('')}</td>
+      <td style="color:var(--sub);font-size:11px;max-width:340px;">${w.rm || ''}</td>
+    </tr>`).join('');
+  document.getElementById('wellCount').textContent = `Showing ${rows.length} of ${WELLS.length}`;
+}
+
+document.querySelectorAll('#wTable th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const k = th.dataset.sort;
+    if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = 1; }
+    renderWells();
+  });
+});
+document.getElementById('wellSearch').addEventListener('input', renderWells);
+document.getElementById('catFilter').addEventListener('change', renderWells);
+document.getElementById('resFilter').addEventListener('change', renderWells);
+renderWells();
+
+// ----- WI table -----
+document.querySelector('#wiTable tbody').innerHTML = WI.map(w => `
+  <tr>
+    <td><b style="font-family:'JetBrains Mono',monospace;">${w.well}</b></td>
+    <td><span class="chip ${w.res === 'R1' ? 'S5' : 'S2'}">${w.res || '—'}</span></td>
+    <td style="text-align:right;font-family:'JetBrains Mono',monospace;">${w.alw ?? '—'}</td>
+    <td style="text-align:right;font-family:'JetBrains Mono',monospace;">${w.max_wo ?? '—'}</td>
+    <td style="text-align:right;font-family:'JetBrains Mono',monospace;">${w.tr ?? '—'}</td>
+    <td style="text-align:right;font-family:'JetBrains Mono',monospace;">${w.actual ?? '—'}</td>
+    <td style="text-align:right;font-family:'JetBrains Mono',monospace;">${w.whip ?? '—'}</td>
+    <td style="color:var(--sub);font-size:11px;max-width:380px;">${w.rm || ''}</td>
+  </tr>`).join('');
+
+// ----- Data Gaps -----
+const gapList = document.getElementById('gapList');
+GAPS.forEach((g, i) => {
+  const row = document.createElement('div');
+  row.className = 'gap-row';
+  row.innerHTML = `
+    <div class="num">${String(i+1).padStart(2,'0')}</div>
+    <div class="body">
+      <h4>${g[0]}</h4>
+      <p>${g[1]}</p>
+    </div>`;
+  gapList.appendChild(row);
+});
+</script>
+</body>
+</html>
